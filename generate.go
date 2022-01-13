@@ -40,20 +40,23 @@ func executeTemplate(out string, tmpl *template.Template, name string, data inte
 
 func generate() (err error) {
 	sliceTypes := []PrimitiveType{
-		{"string", "string", "zstring"},
-		{"int", "int", "zint"},
-		{"int16", "int16", "zint16"},
-		{"int32", "int32", "zint32"},
-		{"int64", "int64", "zint64"},
-		{"uint", "uint", "zuint"},
-		{"uint32", "uint32", "zuint32"},
-		{"uint64", "uint64", "zuint64"},
-		{"float32", "float32", "zfloat32"},
-		{"float64", "float64", "zfloat64"},
+		{"string", "string", "zstrings"},
+		{"int", "int", "zints"},
+		{"int16", "int16", "zint16s"},
+		{"int32", "int32", "zint32s"},
+		{"int64", "int64", "zint64s"},
+		{"uint", "uint", "zuints"},
+		{"uint32", "uint32", "zuint32s"},
+		{"uint64", "uint64", "zuint64s"},
+		{"float32", "float32", "zfloat32s"},
+		{"float64", "float64", "zfloat64s"},
 	}
 	tmpl := template.New("").Funcs(funcMap)
 	tmpl, err = tmpl.ParseFS(templates, "**/*.tpl")
 	if err != nil {
+		return
+	}
+	if err = os.RemoveAll(filepath.Join(root, "slice/")); err != nil {
 		return
 	}
 	for _, t := range sliceTypes {
