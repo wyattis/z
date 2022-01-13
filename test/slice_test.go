@@ -2,7 +2,8 @@ package test
 
 import (
 	"testing"
-	"z/slice/zstrings"
+
+	"github.com/wyattis/z/slice/zstrings"
 )
 
 func TestSplit(t *testing.T) {
