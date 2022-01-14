@@ -3,34 +3,34 @@
 package zuint64set
 
 func New() *Uint64Set {
-  return &Uint64Set{
-    items: make(map[uint64]bool),
-  }
+	return &Uint64Set{
+		items: make(map[uint64]bool),
+	}
 }
 
 type Uint64Set struct {
-  items map[uint64]bool
+	items map[uint64]bool
 }
 
 func (s *Uint64Set) Add(items ...uint64) {
-  for _, item := range items {
-    s.items[item] = true
-  }
+	for _, item := range items {
+		s.items[item] = true
+	}
 }
 
 func (s Uint64Set) Contains(items ...uint64) bool {
-  for _, item := range items {
-    if _, exists := s.items[item]; !exists {
-      return false
-    }
-  }
-  return true
+	for _, item := range items {
+		if _, exists := s.items[item]; !exists {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *Uint64Set) Delete(items ...uint64) {
-  for _, item := range items {
-      delete(s.items, item)
-  }
+	for _, item := range items {
+		delete(s.items, item)
+	}
 }
 
 func (s *Uint64Set) Clear() {
@@ -49,23 +49,23 @@ func (s *Uint64Set) Items() (res []uint64) {
 }
 
 func (s *Uint64Set) Union(others ...Uint64Set) {
-  for _, b := range others {
-    for key := range b.items {
-      s.items[key] = true
-    }
-  }
+	for _, b := range others {
+		for key := range b.items {
+			s.items[key] = true
+		}
+	}
 }
 
 func (s *Uint64Set) Complement(others ...Uint64Set) {
-  for _, b := range others {
-    for key := range b.items {
-      delete(s.items, key)
-    }
-  }
+	for _, b := range others {
+		for key := range b.items {
+			delete(s.items, key)
+		}
+	}
 }
 
 func (s *Uint64Set) Clone() *Uint64Set {
-  res := New()
-  res.Add(s.Items()...)
-  return res
+	res := New()
+	res.Add(s.Items()...)
+	return res
 }

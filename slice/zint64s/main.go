@@ -9,15 +9,15 @@ var (
 )
 
 func Equal(a []int64, b []int64) bool {
-  if len(a) != len(b) {
-    return false
-  }
-  for i := range a {
-    if a[i] != b[i] {
-      return false
-    }
-  }
-  return true
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 // Check if a slice ([]int64) contains a matching member
@@ -32,22 +32,22 @@ func Contains(haystack []int64, needle int64) bool {
 
 // Check if a []int64 slice contains ANY of the provided members
 func ContainsAny(haystack []int64, needles ...int64) bool {
-  for _, needle := range needles {
-    if Contains(haystack, needle) {
-      return true
-    }
-  }
-  return false
+	for _, needle := range needles {
+		if Contains(haystack, needle) {
+			return true
+		}
+	}
+	return false
 }
 
 // Check if a []int64 slice contains ALL of the provided members
 func ContainsAll(haystack []int64, needles ...int64) bool {
-  for _, needle := range needles {
-    if !Contains(haystack, needle) {
-      return false
-    }
-  }
-  return true
+	for _, needle := range needles {
+		if !Contains(haystack, needle) {
+			return false
+		}
+	}
+	return true
 }
 
 // Convert a []interface{} slice into []int64 slice if possible
@@ -72,15 +72,15 @@ func Interface(slice []int64) (res []interface{}, err error) {
 	return
 }
 
-// Find the index where the needle appears. Returns -1 if the needle doesn't 
+// Find the index where the needle appears. Returns -1 if the needle doesn't
 // appear in the slice.
 func Index(haystack []int64, needle int64) int {
-  for i := range haystack {
-    if haystack[i] == needle {
-      return i
-    }
-  }
-  return -1
+	for i := range haystack {
+		if haystack[i] == needle {
+			return i
+		}
+	}
+	return -1
 }
 
 // Cut the slice into two slices separated by the separator
@@ -104,19 +104,19 @@ func CutAny(val []int64, seperators ...int64) (left, right []int64, found bool) 
 
 // Split the slice into one or more slices separated by the separator
 func Split(slice []int64, separator int64) (parts [][]int64) {
-  prevI := 0
-  for i := range slice {
-    if slice[i] == separator {
-      if i > prevI {
-        parts = append(parts, slice[prevI:i])
-      }
-      prevI = i + 1
-    }
-  }
-  if len(slice) > prevI {
-    parts = append(parts, slice[prevI:])
-  }
-  return
+	prevI := 0
+	for i := range slice {
+		if slice[i] == separator {
+			if i > prevI {
+				parts = append(parts, slice[prevI:i])
+			}
+			prevI = i + 1
+		}
+	}
+	if len(slice) > prevI {
+		parts = append(parts, slice[prevI:])
+	}
+	return
 }
 
 // // Split the slice into one or more slices using multiple separators
@@ -136,23 +136,22 @@ func Split(slice []int64, separator int64) (parts [][]int64) {
 
 // // Merge two slices together without repeating values
 // func Merge(a []int64, b []int64) (res []int64) {
-//   
+//
 // }
 
-// // Remove the first occurrence of each value from the slice starting from the 
+// // Remove the first occurrence of each value from the slice starting from the
 // // supplied offset
 // func Remove(slice []int64, values ...int64, offset int) (res []int64) {
-// 
+//
 // }
 
 // // Replace the first occurrence of a value with the replacement value
 // func Replace(slice []int64, val int64, replacement int64) (res []int64) {
-// 
+//
 // }
 
 // // Replace all occurrences of a value with the replacement value
 // func ReplaceAll(slice []int64, val int64, replacement int64) (res []int64) {
-// 
+//
 // }
-// 
-
+//

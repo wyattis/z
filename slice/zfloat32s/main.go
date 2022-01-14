@@ -9,15 +9,15 @@ var (
 )
 
 func Equal(a []float32, b []float32) bool {
-  if len(a) != len(b) {
-    return false
-  }
-  for i := range a {
-    if a[i] != b[i] {
-      return false
-    }
-  }
-  return true
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 // Check if a slice ([]float32) contains a matching member
@@ -32,22 +32,22 @@ func Contains(haystack []float32, needle float32) bool {
 
 // Check if a []float32 slice contains ANY of the provided members
 func ContainsAny(haystack []float32, needles ...float32) bool {
-  for _, needle := range needles {
-    if Contains(haystack, needle) {
-      return true
-    }
-  }
-  return false
+	for _, needle := range needles {
+		if Contains(haystack, needle) {
+			return true
+		}
+	}
+	return false
 }
 
 // Check if a []float32 slice contains ALL of the provided members
 func ContainsAll(haystack []float32, needles ...float32) bool {
-  for _, needle := range needles {
-    if !Contains(haystack, needle) {
-      return false
-    }
-  }
-  return true
+	for _, needle := range needles {
+		if !Contains(haystack, needle) {
+			return false
+		}
+	}
+	return true
 }
 
 // Convert a []interface{} slice into []float32 slice if possible
@@ -72,15 +72,15 @@ func Interface(slice []float32) (res []interface{}, err error) {
 	return
 }
 
-// Find the index where the needle appears. Returns -1 if the needle doesn't 
+// Find the index where the needle appears. Returns -1 if the needle doesn't
 // appear in the slice.
 func Index(haystack []float32, needle float32) int {
-  for i := range haystack {
-    if haystack[i] == needle {
-      return i
-    }
-  }
-  return -1
+	for i := range haystack {
+		if haystack[i] == needle {
+			return i
+		}
+	}
+	return -1
 }
 
 // Cut the slice into two slices separated by the separator
@@ -104,19 +104,19 @@ func CutAny(val []float32, seperators ...float32) (left, right []float32, found 
 
 // Split the slice into one or more slices separated by the separator
 func Split(slice []float32, separator float32) (parts [][]float32) {
-  prevI := 0
-  for i := range slice {
-    if slice[i] == separator {
-      if i > prevI {
-        parts = append(parts, slice[prevI:i])
-      }
-      prevI = i + 1
-    }
-  }
-  if len(slice) > prevI {
-    parts = append(parts, slice[prevI:])
-  }
-  return
+	prevI := 0
+	for i := range slice {
+		if slice[i] == separator {
+			if i > prevI {
+				parts = append(parts, slice[prevI:i])
+			}
+			prevI = i + 1
+		}
+	}
+	if len(slice) > prevI {
+		parts = append(parts, slice[prevI:])
+	}
+	return
 }
 
 // // Split the slice into one or more slices using multiple separators
@@ -136,23 +136,22 @@ func Split(slice []float32, separator float32) (parts [][]float32) {
 
 // // Merge two slices together without repeating values
 // func Merge(a []float32, b []float32) (res []float32) {
-//   
+//
 // }
 
-// // Remove the first occurrence of each value from the slice starting from the 
+// // Remove the first occurrence of each value from the slice starting from the
 // // supplied offset
 // func Remove(slice []float32, values ...float32, offset int) (res []float32) {
-// 
+//
 // }
 
 // // Replace the first occurrence of a value with the replacement value
 // func Replace(slice []float32, val float32, replacement float32) (res []float32) {
-// 
+//
 // }
 
 // // Replace all occurrences of a value with the replacement value
 // func ReplaceAll(slice []float32, val float32, replacement float32) (res []float32) {
-// 
+//
 // }
-// 
-
+//

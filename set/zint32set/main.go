@@ -3,34 +3,34 @@
 package zint32set
 
 func New() *Int32Set {
-  return &Int32Set{
-    items: make(map[int32]bool),
-  }
+	return &Int32Set{
+		items: make(map[int32]bool),
+	}
 }
 
 type Int32Set struct {
-  items map[int32]bool
+	items map[int32]bool
 }
 
 func (s *Int32Set) Add(items ...int32) {
-  for _, item := range items {
-    s.items[item] = true
-  }
+	for _, item := range items {
+		s.items[item] = true
+	}
 }
 
 func (s Int32Set) Contains(items ...int32) bool {
-  for _, item := range items {
-    if _, exists := s.items[item]; !exists {
-      return false
-    }
-  }
-  return true
+	for _, item := range items {
+		if _, exists := s.items[item]; !exists {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *Int32Set) Delete(items ...int32) {
-  for _, item := range items {
-      delete(s.items, item)
-  }
+	for _, item := range items {
+		delete(s.items, item)
+	}
 }
 
 func (s *Int32Set) Clear() {
@@ -49,23 +49,23 @@ func (s *Int32Set) Items() (res []int32) {
 }
 
 func (s *Int32Set) Union(others ...Int32Set) {
-  for _, b := range others {
-    for key := range b.items {
-      s.items[key] = true
-    }
-  }
+	for _, b := range others {
+		for key := range b.items {
+			s.items[key] = true
+		}
+	}
 }
 
 func (s *Int32Set) Complement(others ...Int32Set) {
-  for _, b := range others {
-    for key := range b.items {
-      delete(s.items, key)
-    }
-  }
+	for _, b := range others {
+		for key := range b.items {
+			delete(s.items, key)
+		}
+	}
 }
 
 func (s *Int32Set) Clone() *Int32Set {
-  res := New()
-  res.Add(s.Items()...)
-  return res
+	res := New()
+	res.Add(s.Items()...)
+	return res
 }

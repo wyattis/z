@@ -3,34 +3,34 @@
 package zfloat64set
 
 func New() *Float64Set {
-  return &Float64Set{
-    items: make(map[float64]bool),
-  }
+	return &Float64Set{
+		items: make(map[float64]bool),
+	}
 }
 
 type Float64Set struct {
-  items map[float64]bool
+	items map[float64]bool
 }
 
 func (s *Float64Set) Add(items ...float64) {
-  for _, item := range items {
-    s.items[item] = true
-  }
+	for _, item := range items {
+		s.items[item] = true
+	}
 }
 
 func (s Float64Set) Contains(items ...float64) bool {
-  for _, item := range items {
-    if _, exists := s.items[item]; !exists {
-      return false
-    }
-  }
-  return true
+	for _, item := range items {
+		if _, exists := s.items[item]; !exists {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *Float64Set) Delete(items ...float64) {
-  for _, item := range items {
-      delete(s.items, item)
-  }
+	for _, item := range items {
+		delete(s.items, item)
+	}
 }
 
 func (s *Float64Set) Clear() {
@@ -49,23 +49,23 @@ func (s *Float64Set) Items() (res []float64) {
 }
 
 func (s *Float64Set) Union(others ...Float64Set) {
-  for _, b := range others {
-    for key := range b.items {
-      s.items[key] = true
-    }
-  }
+	for _, b := range others {
+		for key := range b.items {
+			s.items[key] = true
+		}
+	}
 }
 
 func (s *Float64Set) Complement(others ...Float64Set) {
-  for _, b := range others {
-    for key := range b.items {
-      delete(s.items, key)
-    }
-  }
+	for _, b := range others {
+		for key := range b.items {
+			delete(s.items, key)
+		}
+	}
 }
 
 func (s *Float64Set) Clone() *Float64Set {
-  res := New()
-  res.Add(s.Items()...)
-  return res
+	res := New()
+	res.Add(s.Items()...)
+	return res
 }

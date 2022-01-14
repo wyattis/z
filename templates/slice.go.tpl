@@ -9,15 +9,15 @@ var (
 )
 
 func Equal(a []{{.Type}}, b []{{.Type}}) bool {
-  if len(a) != len(b) {
-    return false
-  }
-  for i := range a {
-    if a[i] != b[i] {
-      return false
-    }
-  }
-  return true
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 // Check if a slice ([]{{.Type}}) contains a matching member
@@ -32,22 +32,22 @@ func Contains(haystack []{{.Type}}, needle {{.Type}}) bool {
 
 // Check if a []{{.Type}} slice contains ANY of the provided members
 func ContainsAny(haystack []{{.Type}}, needles ...{{.Type}}) bool {
-  for _, needle := range needles {
-    if Contains(haystack, needle) {
-      return true
-    }
-  }
-  return false
+	for _, needle := range needles {
+		if Contains(haystack, needle) {
+			return true
+		}
+	}
+	return false
 }
 
 // Check if a []{{.Type}} slice contains ALL of the provided members
 func ContainsAll(haystack []{{.Type}}, needles ...{{.Type}}) bool {
-  for _, needle := range needles {
-    if !Contains(haystack, needle) {
-      return false
-    }
-  }
-  return true
+	for _, needle := range needles {
+		if !Contains(haystack, needle) {
+			return false
+		}
+	}
+	return true
 }
 
 // Convert a []interface{} slice into []{{.Type}} slice if possible
@@ -75,12 +75,12 @@ func Interface(slice []{{.Type}}) (res []interface{}, err error) {
 // Find the index where the needle appears. Returns -1 if the needle doesn't 
 // appear in the slice.
 func Index(haystack []{{.Type}}, needle {{.Type}}) int {
-  for i := range haystack {
-    if haystack[i] == needle {
-      return i
-    }
-  }
-  return -1
+	for i := range haystack {
+		if haystack[i] == needle {
+			return i
+		}
+	}
+	return -1
 }
 
 // Cut the slice into two slices separated by the separator
@@ -104,19 +104,19 @@ func CutAny(val []{{.Type}}, seperators ...{{.Type}}) (left, right []{{.Type}}, 
 
 // Split the slice into one or more slices separated by the separator
 func Split(slice []{{.Type}}, separator {{.Type}}) (parts [][]{{.Type}}) {
-  prevI := 0
-  for i := range slice {
-    if slice[i] == separator {
-      if i > prevI {
-        parts = append(parts, slice[prevI:i])
-      }
-      prevI = i + 1
-    }
-  }
-  if len(slice) > prevI {
-    parts = append(parts, slice[prevI:])
-  }
-  return
+	prevI := 0
+	for i := range slice {
+		if slice[i] == separator {
+			if i > prevI {
+				parts = append(parts, slice[prevI:i])
+			}
+			prevI = i + 1
+		}
+	}
+	if len(slice) > prevI {
+		parts = append(parts, slice[prevI:])
+	}
+	return
 }
 
 // // Split the slice into one or more slices using multiple separators
@@ -136,7 +136,7 @@ func Split(slice []{{.Type}}, separator {{.Type}}) (parts [][]{{.Type}}) {
 
 // // Merge two slices together without repeating values
 // func Merge(a []{{.Type}}, b []{{.Type}}) (res []{{.Type}}) {
-//   
+//	 
 // }
 
 // // Remove the first occurrence of each value from the slice starting from the 
