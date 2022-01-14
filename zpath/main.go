@@ -3,6 +3,8 @@ package zpath
 import (
 	"path/filepath"
 	"strings"
+
+	"github.com/wyattis/z/zstring"
 )
 
 // Determine if a path is child of the root path.
@@ -36,4 +38,14 @@ func IsChildOf(root, child string) (isChild bool, err error) {
 func ReplaceExt(path, newExt string) string {
 	ext := filepath.Ext(path)
 	return strings.Replace(path, ext, newExt, len(ext)-1)
+}
+
+var escapeChars = []string{"/", "\\", ":", "?", "&", "="}
+
+// Escape a filename to remove all potentially invalid characters. Reduces a
+// path with multiple directories to a single result
+func FileEscape(str string) string {
+	str = zstring.TrimSuffixes(str, "/", "\\")
+	str = zstring.TrimPrefixes(str, "/", "\\")
+	return zstring.ReplaceManyWithOne(str, escapeChars, "_")
 }

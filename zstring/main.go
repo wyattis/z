@@ -48,6 +48,30 @@ func CutOutAny(val string, leftBounds []string, rightBounds []string) (remaining
 	return
 }
 
+// Like ReplaceAll, but for replacing several sequences at once
+func ReplaceManyWithOne(val string, needles []string, replacement string) string {
+	for _, needle := range needles {
+		val = strings.ReplaceAll(val, needle, replacement)
+	}
+	return val
+}
+
+// Like TrimSuffix, but for removing several suffixes at the same time
+func TrimSuffixes(val string, suffixes ...string) string {
+	for _, suffix := range suffixes {
+		val = strings.TrimSuffix(val, suffix)
+	}
+	return val
+}
+
+// Like TrimPrefix, but for removing several prefixes at the same time
+func TrimPrefixes(val string, prefixes ...string) string {
+	for _, prefix := range prefixes {
+		val = strings.TrimPrefix(val, prefix)
+	}
+	return val
+}
+
 // func SplitMany(val string, seperators ...string) (parts []string) {
 // 	parts = append(parts, val)
 // 	for _, sep := range seperators {
