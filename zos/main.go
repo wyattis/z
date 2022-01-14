@@ -1,4 +1,4 @@
-package zoc
+package zos
 
 import (
 	"errors"
