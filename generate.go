@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	_ "github.com/wyattis/z/zcache"
 )
 
 type PrimitiveType struct {

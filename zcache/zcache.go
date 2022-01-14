@@ -4,108 +4,90 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"io"
 	"os"
-	"path/filepath"
+	"sync"
 	"time"
 
-	"github.com/dsnet/compress/xflate"
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/wyattis/z/zio"
-	"github.com/wyattis/z/zpath"
+	"github.com/wyattis/z/zsignal"
 )
 
-type Item struct {
-	Id         string
-	AccessedAt time.Time
-	CreatedAt  time.Time
+type indexItem struct {
+	id   interface{}
+	data interface{}
 }
 
 func New(dir CacheFS, maxSize int) (c *Cache, err error) {
 	c = &Cache{
-		fs:    dir,
-		mutex: NewMutexMap(),
+		fs: dir,
 	}
-	c.index, err = lru.NewWithEvict(maxSize, c.onEvict)
+	c.Cache, err = lru.New(maxSize)
 	return
 }
 
 type Cache struct {
-	fs           CacheFS
-	mutex        *MutexMap
-	index        *lru.Cache
-	prevOldestId string
-	prevLength   int
-	Compressed   bool
+	*lru.Cache
+	sig           *zsignal.Signal
+	Debounce      time.Duration
+	isInitialized bool
+	mut           *sync.Mutex
+	cond          *sync.Cond
+	fs            CacheFS
+	prevOldestId  string
+	prevLength    int
 }
 
-type gobIndex struct {
-	Compressed bool
-	Items      []Item
-}
-
-const indexPath = "zcache_index.gob"
-
-func (c *Cache) onEvict(key interface{}, value interface{}) {
-	id := key.(string)
-	c.mutex.Lock(id)
-	defer c.mutex.Unlock(id)
-	c.fs.Remove(id)
-}
-
-func (c *Cache) Init() (err error) {
+func (c *Cache) init() (err error) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	if c.isInitialized {
+		return
+	}
+	c.isInitialized = true
 	f, err := c.fs.Open(indexPath)
 	if err == nil {
-		index := gobIndex{}
+		index := []indexItem{}
 		defer f.Close()
 		dec := gob.NewDecoder(f)
 		if err = dec.Decode(&index); err != nil {
 			return
 		}
-		if index.Compressed != c.Compressed {
-			return errors.New("compression state changed. cache is invalid")
+		for _, item := range index {
+			c.Add(item.id, item.data)
 		}
-		for _, item := range index.Items {
-			c.index.Add(item.Id, item)
-		}
-		oldestKey, _, exists := c.index.GetOldest()
+		oldestKey, _, exists := c.GetOldest()
 		if exists {
 			c.prevOldestId = oldestKey.(string)
-			c.prevLength = c.index.Len()
+			c.prevLength = c.Len()
 		}
-		fmt.Printf("loaded %d existing items\n", c.index.Len())
+		fmt.Printf("loaded %d existing items\n", c.Len())
 	} else if errors.Is(err, os.ErrNotExist) {
 		err = nil
 	}
-	go c.loop()
+	c.sig = zsignal.New()
+	if c.Debounce == 0 {
+		c.Debounce = time.Second * 5
+	}
+	go c.sig.Debounce(c.Debounce, c.sync)
 	return
 }
 
-func (c *Cache) loop() {
-	t := time.NewTicker(time.Second * 10)
-	for range t.C {
-		if err := c.sync(); err != nil {
-			fmt.Println(err)
-		}
-	}
-}
-
 func (c *Cache) sync() (err error) {
-	oldestKey, _, exists := c.index.GetOldest()
+	oldestKey, _, exists := c.GetOldest()
 	oldestId := ""
 	if exists {
 		oldestId = oldestKey.(string)
 	}
-	l := c.index.Len()
+	l := c.Len()
 	if exists && (c.prevOldestId != oldestId || c.prevLength != l) {
-		index := gobIndex{Compressed: c.Compressed}
-		for _, key := range c.index.Keys() {
-			v, exists := c.index.Get(key)
+		items := []indexItem{}
+		for _, key := range c.Keys() {
+			v, exists := c.Get(key)
 			if exists {
-				index.Items = append(index.Items, v.(Item))
+				items = append(items, indexItem{id: key, data: v})
 			}
 		}
-		fmt.Printf("syncing %d items\n", len(index.Items))
+		fmt.Printf("syncing %d items\n", len(items))
 		f, err := c.fs.Create(indexPath)
 		if err != nil {
 			return err
@@ -114,113 +96,49 @@ func (c *Cache) sync() (err error) {
 		enc := gob.NewEncoder(f)
 		c.prevOldestId = oldestId
 		c.prevLength = l
-		return enc.Encode(index)
+		return enc.Encode(items)
 	}
 	return
 }
 
-func (c *Cache) Contains(id string) (exists bool) {
-	c.mutex.Lock(id)
-	defer c.mutex.Unlock(id)
-	return c.index.Contains(id)
+func (c *Cache) Add(key, val interface{}) (evicted bool) {
+	c.sig.Notify()
+	return c.Cache.Add(key, val)
 }
 
-func (c *Cache) Get(id string) (item Item, exists bool) {
-	c.mutex.Lock(id)
-	defer c.mutex.Unlock(id)
-	v, exists := c.index.Get(id)
-	item = v.(Item)
-	item.AccessedAt = time.Now()
-	return
-}
-
-func (c *Cache) slugId(id string) string {
-	id = zpath.FileEscape(id)
-	if c.Compressed {
-		id += ".xflate"
-	}
-	return id
-}
-
-func (c *Cache) open(id string) (file io.ReadSeekCloser, item Item, err error) {
-	if v, exists := c.index.Get(id); exists {
-		id = c.slugId(id)
-		file, err = c.fs.Open(id)
-		if err != nil {
-			return
-		}
-		if c.Compressed {
-			file, err = xflate.NewReader(file, nil)
-			if err != nil {
-				return
-			}
-		}
-		item := v.(Item)
-		return file, item, err
-	}
-	err = os.ErrNotExist
-	return
-}
-
-func (c *Cache) Open(id string) (file io.ReadSeekCloser, item Item, err error) {
-	c.mutex.Lock(id)
-	defer c.mutex.Unlock(id)
-	return c.open(id)
-}
-
-func (c *Cache) OpenOrCreate(id string, create func(w io.Writer) error) (res io.ReadSeekCloser, item Item, err error) {
-	c.mutex.Lock(id)
-	defer c.mutex.Unlock(id)
-	fileId := c.slugId(id)
-	if v, exists := c.index.Get(id); exists {
-		item.AccessedAt = time.Now()
-		res, err = c.fs.Open(fileId)
-		item = v.(Item)
-		return res, item, err
-	}
-	tmpId := fileId + ".tmp"
-	file, source, err := c.create(tmpId)
-	if err != nil {
-		return
-	}
-	if err = create(file); err != nil {
-		zio.CloseAll(file, source)
-		c.fs.Remove(tmpId)
-		return
-	}
-	if err = zio.CloseAll(file, source); err != nil {
-		return
-	}
-	if err = c.fs.Rename(tmpId, fileId); err != nil {
-		return
-	}
-	item.Id = id
-	item.CreatedAt = time.Now()
-	item.AccessedAt = time.Now()
-	c.index.Add(id, item)
-	return c.open(id)
-}
-
-func (c *Cache) create(id string) (file io.WriteCloser, source io.Closer, err error) {
-	if err = c.fs.MkdirAll(filepath.Dir(id), os.ModePerm); err != nil {
-		return
-	}
-	file, err = c.fs.Create(id)
-	if err != nil {
-		return
-	}
-	if c.Compressed {
-		source = file
-		file, err = xflate.NewWriter(file, &xflate.WriterConfig{
-			Level: xflate.BestSpeed,
-		})
+func (c *Cache) ContainsOrAdd(key, val interface{}) (existed, evicted bool) {
+	existed, evicted = c.Cache.ContainsOrAdd(key, val)
+	if !existed || evicted {
+		c.sig.Notify()
 	}
 	return
 }
 
-func (c *Cache) Remove(id string) error {
-	c.mutex.Lock(id)
-	defer c.mutex.Unlock(id)
-	c.index.Remove(id)
-	return c.fs.Remove(id)
+func (c *Cache) Purge() {
+	c.sig.Notify()
+	c.Cache.Purge()
+}
+
+func (c *Cache) PeekOrAdd(key, val interface{}) (prev interface{}, existed, evicted bool) {
+	prev, existed, evicted = c.Cache.PeekOrAdd(key, val)
+	if !existed || evicted {
+		c.sig.Notify()
+	}
+	return
+}
+
+func (c *Cache) Remove(key interface{}) (present bool) {
+	present = c.Cache.Remove(key)
+	if present {
+		c.sig.Notify()
+	}
+	return
+}
+
+func (c *Cache) RemoveAll() (key, val interface{}, removed bool) {
+	key, val, removed = c.Cache.RemoveOldest()
+	if removed {
+		c.sig.Notify()
+	}
+	return
 }
