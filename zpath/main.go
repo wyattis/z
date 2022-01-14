@@ -32,12 +32,6 @@ func IsChildOf(root, child string) (isChild bool, err error) {
 	return true, nil
 }
 
-// // Determine if a path exists or not
-// func Exists(path string) bool {
-// 	_, err := os.Stat(path)
-// 	return !errors.Is(err, os.ErrNotExist)
-// }
-
 // Replace the extension in a filepath with the new extension
 func ReplaceExt(path, newExt string) string {
 	ext := filepath.Ext(path)
