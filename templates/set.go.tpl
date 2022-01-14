@@ -29,7 +29,7 @@ func (s {{title .TypeName}}Set) Contains(items ...{{ .Type }}) bool {
 
 func (s *{{title .TypeName}}Set) Delete(items ...{{ .Type }}) {
 	for _, item := range items {
-			delete(s.items, item)
+		delete(s.items, item)
 	}
 }
 
@@ -69,5 +69,4 @@ func (s *{{title .TypeName}}Set) Clone() *{{title .TypeName}}Set {
 	res.Add(s.Items()...)
 	return res
 }
-
-{{- end -}}
+{{end -}}

@@ -72,7 +72,7 @@ func Interface(slice []{{.Type}}) (res []interface{}, err error) {
 	return
 }
 
-// Find the index where the needle appears. Returns -1 if the needle doesn't 
+// Find the index where the needle appears. Returns -1 if the needle doesn't
 // appear in the slice.
 func Index(haystack []{{.Type}}, needle {{.Type}}) int {
 	for i := range haystack {
@@ -136,24 +136,23 @@ func Split(slice []{{.Type}}, separator {{.Type}}) (parts [][]{{.Type}}) {
 
 // // Merge two slices together without repeating values
 // func Merge(a []{{.Type}}, b []{{.Type}}) (res []{{.Type}}) {
-//	 
+//
 // }
 
-// // Remove the first occurrence of each value from the slice starting from the 
+// // Remove the first occurrence of each value from the slice starting from the
 // // supplied offset
 // func Remove(slice []{{.Type}}, values ...{{.Type}}, offset int) (res []{{.Type}}) {
-// 
+//
 // }
 
 // // Replace the first occurrence of a value with the replacement value
 // func Replace(slice []{{.Type}}, val {{.Type}}, replacement {{.Type}}) (res []{{.Type}}) {
-// 
+//
 // }
 
 // // Replace all occurrences of a value with the replacement value
 // func ReplaceAll(slice []{{.Type}}, val {{.Type}}, replacement {{.Type}}) (res []{{.Type}}) {
-// 
+//
 // }
-// 
-
-{{ end }}
+//
+{{ end -}}
