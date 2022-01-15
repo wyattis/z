@@ -39,6 +39,9 @@ type Cache struct {
 }
 
 func (c *Cache) init() (err error) {
+	if c.isInitialized {
+		return
+	}
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	if c.isInitialized {
@@ -59,7 +62,7 @@ func (c *Cache) init() (err error) {
 		for _, item := range index {
 			c.silentAdd(item.Id, item.Data)
 		}
-		oldestKey, _, exists := c.GetOldest()
+		oldestKey, _, exists := c.Cache.GetOldest()
 		if exists {
 			c.prevOldestId = oldestKey.(string)
 			c.prevLength = c.Cache.Len()
