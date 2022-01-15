@@ -20,6 +20,7 @@ type indexItem struct {
 func New(dir CacheFS, maxSize int) (c *Cache, err error) {
 	c = &Cache{
 		fs:  dir,
+		mut: sync.Mutex{},
 		sig: zsignal.New(),
 	}
 	c.Cache, err = lru.New(maxSize)
@@ -31,8 +32,7 @@ type Cache struct {
 	sig           *zsignal.Signal
 	Debounce      time.Duration
 	isInitialized bool
-	mut           *sync.Mutex
-	cond          *sync.Cond
+	mut           sync.Mutex
 	fs            CacheFS
 	prevOldestId  string
 	prevLength    int
