@@ -45,6 +45,9 @@ func (c *Cache) init() (err error) {
 		return
 	}
 	c.isInitialized = true
+	if err = c.fs.MkdirAll("", os.ModePerm); err != nil {
+		return
+	}
 	f, err := c.fs.Open(indexPath)
 	if err == nil {
 		index := []indexItem{}
