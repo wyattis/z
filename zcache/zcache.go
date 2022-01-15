@@ -13,8 +13,8 @@ import (
 )
 
 type indexItem struct {
-	id   interface{}
-	data interface{}
+	Id   interface{}
+	Data interface{}
 }
 
 func New(dir CacheFS, maxSize int) (c *Cache, err error) {
@@ -57,7 +57,7 @@ func (c *Cache) init() (err error) {
 			return
 		}
 		for _, item := range index {
-			c.silentAdd(item.id, item.data)
+			c.silentAdd(item.Id, item.Data)
 		}
 		oldestKey, _, exists := c.GetOldest()
 		if exists {
@@ -88,7 +88,7 @@ func (c *Cache) sync() (err error) {
 		for _, key := range c.Cache.Keys() {
 			v, exists := c.Get(key)
 			if exists {
-				items = append(items, indexItem{id: key, data: v})
+				items = append(items, indexItem{Id: key, Data: v})
 			}
 		}
 		fmt.Printf("syncing %d items\n", len(items))
