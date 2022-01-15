@@ -19,7 +19,8 @@ type indexItem struct {
 
 func New(dir CacheFS, maxSize int) (c *Cache, err error) {
 	c = &Cache{
-		fs: dir,
+		fs:  dir,
+		sig: zsignal.New(),
 	}
 	c.Cache, err = lru.New(maxSize)
 	return
@@ -53,7 +54,7 @@ func (c *Cache) init() (err error) {
 			return
 		}
 		for _, item := range index {
-			c.Add(item.id, item.data)
+			c.silentAdd(item.id, item.data)
 		}
 		oldestKey, _, exists := c.GetOldest()
 		if exists {
@@ -99,6 +100,10 @@ func (c *Cache) sync() (err error) {
 		return enc.Encode(items)
 	}
 	return
+}
+
+func (c *Cache) silentAdd(key, val interface{}) (evicted bool) {
+	return c.Cache.Add(key, val)
 }
 
 func (c *Cache) Add(key, val interface{}) (evicted bool) {
