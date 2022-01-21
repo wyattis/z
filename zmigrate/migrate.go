@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/wyattis/z/zmigrate/drivers"
+	"github.com/wyattis/z/zsql"
 	"github.com/wyattis/z/zstring"
 )
 
@@ -125,41 +126,22 @@ func (m *Migrator) ToVersion(version int) (err error) {
 	}
 	// if there are conflicts we throw an error.
 	if version > currentVersion {
-		return m.withTx(func(tx Exec) error {
+		return m.withTx(func(tx zsql.Exec) error {
 			return m.up(tx, availableUp[currentVersion:version])
 		})
 	} else {
-		return m.withTx(func(tx Exec) error {
+		return m.withTx(func(tx zsql.Exec) error {
 			return m.down(tx, m.reverse(availableDown[version:currentVersion]))
 		})
 	}
 }
 
-func (m *Migrator) withTx(handler func(tx Exec) error) (err error) {
-	var tx Exec
-	var txn *sql.Tx
-	if !m.config.SkipTransaction {
-		txn, err = m.db.Begin()
-		tx = txn
-		if err != nil {
-			return err
-		}
+func (m *Migrator) withTx(handler zsql.TxHandler) (err error) {
+	if m.config.SkipTransaction {
+		return zsql.WithoutTx(m.db, handler)
 	} else {
-		tx = m.db
+		return zsql.WithTx(m.db, handler)
 	}
-
-	if err = handler(tx); err != nil {
-		if !m.config.SkipTransaction {
-			if err2 := txn.Rollback(); err2 != nil {
-				return err2
-			}
-		}
-		return err
-	}
-	if !m.config.SkipTransaction {
-		return txn.Commit()
-	}
-	return
 }
 
 func (m *Migrator) up(tx Exec, migrations []migration) (err error) {
