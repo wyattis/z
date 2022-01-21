@@ -19,3 +19,18 @@ func WithTx(db DB, handler TxHandler) (err error) {
 func WithoutTx(db DB, handler TxHandler) (err error) {
 	return handler(&nopExec{})
 }
+
+// Execute a sqlx transaction using a closure
+func WithTxx(db DBx, handler TxxHandler) (err error) {
+	txn, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+	if err = handler(txn); err != nil {
+		if err2 := txn.Rollback(); err2 != nil {
+			return err2
+		}
+		return err
+	}
+	return txn.Commit()
+}
