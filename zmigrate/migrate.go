@@ -129,11 +129,11 @@ func (m *Migrator) ToVersion(version int) (err error) {
 		return m.withTx(func(tx zsql.Exec) error {
 			return m.up(tx, availableUp[currentVersion:version])
 		})
-	} else  {
+	} else {
 		return m.withTx(func(tx zsql.Exec) error {
 			return m.down(tx, m.reverse(availableDown[version:currentVersion]))
 		})
-	}n
+	}
 }
 
 func (m *Migrator) withTx(handler zsql.TxHandler) (err error) {
