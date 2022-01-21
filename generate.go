@@ -89,10 +89,10 @@ func makeTypes(dir, tempName string, types []PrimitiveType) (err error) {
 }
 
 func generate() (err error) {
-	if err = makeTypes(filepath.Join(root, "slice"), "slice", sliceTypes); err != nil {
+	if err = makeTypes(filepath.Join(root, "zslice"), "slice", sliceTypes); err != nil {
 		return
 	}
-	return makeTypes(filepath.Join(root, "set"), "set", setTypes)
+	return makeTypes(filepath.Join(root, "zset"), "set", setTypes)
 }
 
 func main() {

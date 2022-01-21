@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	"github.com/wyattis/z/slice/zstrings"
+	"github.com/wyattis/z/zslice/zstrings"
 )
 
 func TestSplit(t *testing.T) {
