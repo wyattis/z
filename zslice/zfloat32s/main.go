@@ -169,11 +169,31 @@ func Split(slice []float32, separator float32) (parts [][]float32) {
 //
 // }
 
-// // Remove the first occurrence of each value from the slice starting from the
-// // supplied offset
-// func Remove(slice []float32, values ...float32, offset int) (res []float32) {
-//
-// }
+// Remove the first occurrence of each value from the slice starting from the
+// supplied offset
+func Remove(slice []float32, offset int, values ...float32) (res []float32) {
+  for i := offset; i < len(slice); i++ {
+    for _, val := range values {
+      if slice[i] == val {
+        break
+      }
+      res = append(res, slice[i])
+    }
+  }
+  return
+}
+
+// Remove the item at the index while preserving the order of the items
+func RemoveAt(slice []float32, index int) (res []float32) {
+  if index >= len(slice) {
+    panic("index cannot be greater than len(slice)")
+  } else if index == len(slice) - 1 {
+    res = slice[:index]
+  } else {
+    res = append(slice[:index], slice[index+1:]...)
+  }
+  return
+}
 
 // // Replace the first occurrence of a value with the replacement value
 // func Replace(slice []float32, val float32, replacement float32) (res []float32) {
