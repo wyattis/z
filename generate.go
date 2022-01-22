@@ -16,6 +16,7 @@ type PrimitiveType struct {
 	TypeName    string
 	PackageName string
 	IsString    bool
+	IsBool      bool
 }
 
 //go:embed templates
@@ -27,29 +28,30 @@ var funcMap = template.FuncMap{
 }
 
 var sliceTypes = []PrimitiveType{
-	{"string", "string", "zstrings", true},
-	{"int", "int", "zints", false},
-	{"int16", "int16", "zint16s", false},
-	{"int32", "int32", "zint32s", false},
-	{"int64", "int64", "zint64s", false},
-	{"uint", "uint", "zuints", false},
-	{"uint32", "uint32", "zuint32s", false},
-	{"uint64", "uint64", "zuint64s", false},
-	{"float32", "float32", "zfloat32s", false},
-	{"float64", "float64", "zfloat64s", false},
+	{"string", "string", "zstrings", true, false},
+	{"bool", "bool", "zbools", false, true},
+	{"int", "int", "zints", false, false},
+	{"int16", "int16", "zint16s", false, false},
+	{"int32", "int32", "zint32s", false, false},
+	{"int64", "int64", "zint64s", false, false},
+	{"uint", "uint", "zuints", false, false},
+	{"uint32", "uint32", "zuint32s", false, false},
+	{"uint64", "uint64", "zuint64s", false, false},
+	{"float32", "float32", "zfloat32s", false, false},
+	{"float64", "float64", "zfloat64s", false, false},
 }
 
 var setTypes = []PrimitiveType{
-	{"string", "string", "zstringset", true},
-	{"int", "int", "zintset", false},
-	{"int16", "int16", "zint16set", false},
-	{"int32", "int32", "zint32set", false},
-	{"int64", "int64", "zint64set", false},
-	{"uint", "uint", "zuintset", false},
-	{"uint32", "uint32", "zuint32set", false},
-	{"uint64", "uint64", "zuint64set", false},
-	{"float32", "float32", "zfloat32set", false},
-	{"float64", "float64", "zfloat64set", false},
+	{"string", "string", "zstringset", true, false},
+	{"int", "int", "zintset", false, false},
+	{"int16", "int16", "zint16set", false, false},
+	{"int32", "int32", "zint32set", false, false},
+	{"int64", "int64", "zint64set", false, false},
+	{"uint", "uint", "zuintset", false, false},
+	{"uint32", "uint32", "zuint32set", false, false},
+	{"uint64", "uint64", "zuint64set", false, false},
+	{"float32", "float32", "zfloat32set", false, false},
+	{"float64", "float64", "zfloat64set", false, false},
 }
 
 func executeTemplate(out string, tmpl *template.Template, name string, data interface{}) (err error) {
