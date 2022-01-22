@@ -25,17 +25,30 @@ func Equal(a []float32, b []float32) bool {
 	return true
 }
 
-// Sort the slice
+// Sort the slice in ascending order
 func Sort(s []float32) {
   sort.Slice(s, func (i, j int) bool {
     return s[j] > s[i]
   })
 }
+
+// Sort the slice in descending order
 func SortReverse(s []float32) {
   sort.Slice(s, func (i, j int) bool {
     return s[i] > s[j]
   })
 }
+
+// Resize a slice to the given length
+func Resize(s []float32, n int) (res []float32) {
+  diff := n - len(s)
+  if diff > 0 {
+    return append(s, make([]float32, diff)...)
+  } else {
+    return s[:n]
+  }
+}
+
 
 // Check if a slice ([]float32) contains a matching member
 func Contains(haystack []float32, needle float32) bool {

@@ -25,17 +25,30 @@ func Equal(a []int64, b []int64) bool {
 	return true
 }
 
-// Sort the slice
+// Sort the slice in ascending order
 func Sort(s []int64) {
   sort.Slice(s, func (i, j int) bool {
     return s[j] > s[i]
   })
 }
+
+// Sort the slice in descending order
 func SortReverse(s []int64) {
   sort.Slice(s, func (i, j int) bool {
     return s[i] > s[j]
   })
 }
+
+// Resize a slice to the given length
+func Resize(s []int64, n int) (res []int64) {
+  diff := n - len(s)
+  if diff > 0 {
+    return append(s, make([]int64, diff)...)
+  } else {
+    return s[:n]
+  }
+}
+
 
 // Check if a slice ([]int64) contains a matching member
 func Contains(haystack []int64, needle int64) bool {

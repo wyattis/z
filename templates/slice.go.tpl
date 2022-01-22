@@ -27,16 +27,11 @@ func Equal(a []{{.Type}}, b []{{.Type}}) bool {
 	return true
 }
 
-// Sort the slice
+// Sort the slice in ascending order
 {{- if .IsString}}
 func Sort(s []{{.Type}}) {
   sort.Slice(s, func (i, j int) bool {
     return strings.Compare(s[j], s[i]) > 0
-  })
-}
-func SortReverse(s []{{.Type}}) {
-  sort.Slice(s, func (i, j int) bool {
-    return strings.Compare(s[i], s[j]) > 0
   })
 }
 {{- else}}
@@ -45,12 +40,33 @@ func Sort(s []{{.Type}}) {
     return s[j] > s[i]
   })
 }
+{{- end }}
+
+// Sort the slice in descending order
+{{- if .IsString }}
+func SortReverse(s []{{.Type}}) {
+  sort.Slice(s, func (i, j int) bool {
+    return strings.Compare(s[i], s[j]) > 0
+  })
+}
+{{- else }}
 func SortReverse(s []{{.Type}}) {
   sort.Slice(s, func (i, j int) bool {
     return s[i] > s[j]
   })
 }
 {{- end }}
+
+// Resize a slice to the given length
+func Resize(s []{{.Type}}, n int) (res []{{.Type}}) {
+  diff := n - len(s)
+  if diff > 0 {
+    return append(s, make([]{{.Type}}, diff)...)
+  } else {
+    return s[:n]
+  }
+}
+
 
 // Check if a slice ([]{{.Type}}) contains a matching member
 func Contains(haystack []{{.Type}}, needle {{.Type}}) bool {

@@ -25,17 +25,30 @@ func Equal(a []uint, b []uint) bool {
 	return true
 }
 
-// Sort the slice
+// Sort the slice in ascending order
 func Sort(s []uint) {
   sort.Slice(s, func (i, j int) bool {
     return s[j] > s[i]
   })
 }
+
+// Sort the slice in descending order
 func SortReverse(s []uint) {
   sort.Slice(s, func (i, j int) bool {
     return s[i] > s[j]
   })
 }
+
+// Resize a slice to the given length
+func Resize(s []uint, n int) (res []uint) {
+  diff := n - len(s)
+  if diff > 0 {
+    return append(s, make([]uint, diff)...)
+  } else {
+    return s[:n]
+  }
+}
+
 
 // Check if a slice ([]uint) contains a matching member
 func Contains(haystack []uint, needle uint) bool {

@@ -25,17 +25,30 @@ func Equal(a []string, b []string) bool {
 	return true
 }
 
-// Sort the slice
+// Sort the slice in ascending order
 func Sort(s []string) {
   sort.Slice(s, func (i, j int) bool {
     return strings.Compare(s[j], s[i]) > 0
   })
 }
+
+// Sort the slice in descending order
 func SortReverse(s []string) {
   sort.Slice(s, func (i, j int) bool {
     return strings.Compare(s[i], s[j]) > 0
   })
 }
+
+// Resize a slice to the given length
+func Resize(s []string, n int) (res []string) {
+  diff := n - len(s)
+  if diff > 0 {
+    return append(s, make([]string, diff)...)
+  } else {
+    return s[:n]
+  }
+}
+
 
 // Check if a slice ([]string) contains a matching member
 func Contains(haystack []string, needle string) bool {
