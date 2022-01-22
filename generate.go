@@ -15,6 +15,7 @@ type PrimitiveType struct {
 	Type        string
 	TypeName    string
 	PackageName string
+	IsString    bool
 }
 
 //go:embed templates
@@ -26,29 +27,29 @@ var funcMap = template.FuncMap{
 }
 
 var sliceTypes = []PrimitiveType{
-	{"string", "string", "zstrings"},
-	{"int", "int", "zints"},
-	{"int16", "int16", "zint16s"},
-	{"int32", "int32", "zint32s"},
-	{"int64", "int64", "zint64s"},
-	{"uint", "uint", "zuints"},
-	{"uint32", "uint32", "zuint32s"},
-	{"uint64", "uint64", "zuint64s"},
-	{"float32", "float32", "zfloat32s"},
-	{"float64", "float64", "zfloat64s"},
+	{"string", "string", "zstrings", true},
+	{"int", "int", "zints", false},
+	{"int16", "int16", "zint16s", false},
+	{"int32", "int32", "zint32s", false},
+	{"int64", "int64", "zint64s", false},
+	{"uint", "uint", "zuints", false},
+	{"uint32", "uint32", "zuint32s", false},
+	{"uint64", "uint64", "zuint64s", false},
+	{"float32", "float32", "zfloat32s", false},
+	{"float64", "float64", "zfloat64s", false},
 }
 
 var setTypes = []PrimitiveType{
-	{"string", "string", "zstringset"},
-	{"int", "int", "zintset"},
-	{"int16", "int16", "zint16set"},
-	{"int32", "int32", "zint32set"},
-	{"int64", "int64", "zint64set"},
-	{"uint", "uint", "zuintset"},
-	{"uint32", "uint32", "zuint32set"},
-	{"uint64", "uint64", "zuint64set"},
-	{"float32", "float32", "zfloat32set"},
-	{"float64", "float64", "zfloat64set"},
+	{"string", "string", "zstringset", true},
+	{"int", "int", "zintset", false},
+	{"int16", "int16", "zint16set", false},
+	{"int32", "int32", "zint32set", false},
+	{"int64", "int64", "zint64set", false},
+	{"uint", "uint", "zuintset", false},
+	{"uint32", "uint32", "zuint32set", false},
+	{"uint64", "uint64", "zuint64set", false},
+	{"float32", "float32", "zfloat32set", false},
+	{"float64", "float64", "zfloat64set", false},
 }
 
 func executeTemplate(out string, tmpl *template.Template, name string, data interface{}) (err error) {

@@ -2,12 +2,17 @@
 
 package zint32s
 
-import "errors"
+import (
+  "errors"
+  "sort"
+  
+)
 
 var (
 	ErrInterfaceNotInt32 = errors.New("encountered non-int32 interface")
 )
 
+// Determine if two slices are equal to each other
 func Equal(a []int32, b []int32) bool {
 	if len(a) != len(b) {
 		return false
@@ -18,6 +23,13 @@ func Equal(a []int32, b []int32) bool {
 		}
 	}
 	return true
+}
+
+// Sort the slice
+func Sort(s []int32) {
+  sort.Slice(s, func (i, j int) bool {
+    return s[i] > s[j]
+  })
 }
 
 // Check if a slice ([]int32) contains a matching member

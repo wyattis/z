@@ -2,12 +2,17 @@
 
 package zint16s
 
-import "errors"
+import (
+  "errors"
+  "sort"
+  
+)
 
 var (
 	ErrInterfaceNotInt16 = errors.New("encountered non-int16 interface")
 )
 
+// Determine if two slices are equal to each other
 func Equal(a []int16, b []int16) bool {
 	if len(a) != len(b) {
 		return false
@@ -18,6 +23,13 @@ func Equal(a []int16, b []int16) bool {
 		}
 	}
 	return true
+}
+
+// Sort the slice
+func Sort(s []int16) {
+  sort.Slice(s, func (i, j int) bool {
+    return s[i] > s[j]
+  })
 }
 
 // Check if a slice ([]int16) contains a matching member

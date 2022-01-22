@@ -2,12 +2,17 @@
 
 package zstrings
 
-import "errors"
+import (
+  "errors"
+  "sort"
+  "strings"
+)
 
 var (
 	ErrInterfaceNotString = errors.New("encountered non-string interface")
 )
 
+// Determine if two slices are equal to each other
 func Equal(a []string, b []string) bool {
 	if len(a) != len(b) {
 		return false
@@ -18,6 +23,13 @@ func Equal(a []string, b []string) bool {
 		}
 	}
 	return true
+}
+
+// Sort the slice
+func Sort(s []string) {
+  sort.Slice(s, func (i, j int) bool {
+    return strings.Compare(s[i], s[j]) > 0
+  })
 }
 
 // Check if a slice ([]string) contains a matching member

@@ -2,12 +2,17 @@
 
 package zint64s
 
-import "errors"
+import (
+  "errors"
+  "sort"
+  
+)
 
 var (
 	ErrInterfaceNotInt64 = errors.New("encountered non-int64 interface")
 )
 
+// Determine if two slices are equal to each other
 func Equal(a []int64, b []int64) bool {
 	if len(a) != len(b) {
 		return false
@@ -18,6 +23,13 @@ func Equal(a []int64, b []int64) bool {
 		}
 	}
 	return true
+}
+
+// Sort the slice
+func Sort(s []int64) {
+  sort.Slice(s, func (i, j int) bool {
+    return s[i] > s[j]
+  })
 }
 
 // Check if a slice ([]int64) contains a matching member

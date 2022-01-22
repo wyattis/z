@@ -2,12 +2,17 @@
 
 package zuints
 
-import "errors"
+import (
+  "errors"
+  "sort"
+  
+)
 
 var (
 	ErrInterfaceNotUint = errors.New("encountered non-uint interface")
 )
 
+// Determine if two slices are equal to each other
 func Equal(a []uint, b []uint) bool {
 	if len(a) != len(b) {
 		return false
@@ -18,6 +23,13 @@ func Equal(a []uint, b []uint) bool {
 		}
 	}
 	return true
+}
+
+// Sort the slice
+func Sort(s []uint) {
+  sort.Slice(s, func (i, j int) bool {
+    return s[i] > s[j]
+  })
 }
 
 // Check if a slice ([]uint) contains a matching member

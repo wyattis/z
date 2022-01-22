@@ -2,12 +2,17 @@
 
 package zfloat64s
 
-import "errors"
+import (
+  "errors"
+  "sort"
+  
+)
 
 var (
 	ErrInterfaceNotFloat64 = errors.New("encountered non-float64 interface")
 )
 
+// Determine if two slices are equal to each other
 func Equal(a []float64, b []float64) bool {
 	if len(a) != len(b) {
 		return false
@@ -18,6 +23,13 @@ func Equal(a []float64, b []float64) bool {
 		}
 	}
 	return true
+}
+
+// Sort the slice
+func Sort(s []float64) {
+  sort.Slice(s, func (i, j int) bool {
+    return s[i] > s[j]
+  })
 }
 
 // Check if a slice ([]float64) contains a matching member

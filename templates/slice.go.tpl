@@ -2,12 +2,19 @@
 
 package {{.PackageName}}
 
-import "errors"
+import (
+  "errors"
+  "sort"
+  {{ if .IsString -}}
+  "strings"
+  {{- end }}
+)
 
 var (
 	ErrInterfaceNot{{title .TypeName}} = errors.New("encountered non-{{.TypeName}} interface")
 )
 
+// Determine if two slices are equal to each other
 func Equal(a []{{.Type}}, b []{{.Type}}) bool {
 	if len(a) != len(b) {
 		return false
@@ -19,6 +26,21 @@ func Equal(a []{{.Type}}, b []{{.Type}}) bool {
 	}
 	return true
 }
+
+// Sort the slice
+{{- if .IsString}}
+func Sort(s []{{.Type}}) {
+  sort.Slice(s, func (i, j int) bool {
+    return strings.Compare(s[i], s[j]) > 0
+  })
+}
+{{- else}}
+func Sort(s []{{.Type}}) {
+  sort.Slice(s, func (i, j int) bool {
+    return s[i] > s[j]
+  })
+}
+{{- end }}
 
 // Check if a slice ([]{{.Type}}) contains a matching member
 func Contains(haystack []{{.Type}}, needle {{.Type}}) bool {

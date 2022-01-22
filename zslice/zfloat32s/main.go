@@ -2,12 +2,17 @@
 
 package zfloat32s
 
-import "errors"
+import (
+  "errors"
+  "sort"
+  
+)
 
 var (
 	ErrInterfaceNotFloat32 = errors.New("encountered non-float32 interface")
 )
 
+// Determine if two slices are equal to each other
 func Equal(a []float32, b []float32) bool {
 	if len(a) != len(b) {
 		return false
@@ -18,6 +23,13 @@ func Equal(a []float32, b []float32) bool {
 		}
 	}
 	return true
+}
+
+// Sort the slice
+func Sort(s []float32) {
+  sort.Slice(s, func (i, j int) bool {
+    return s[i] > s[j]
+  })
 }
 
 // Check if a slice ([]float32) contains a matching member
