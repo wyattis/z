@@ -28,6 +28,11 @@ func Equal(a []int64, b []int64) bool {
 // Sort the slice
 func Sort(s []int64) {
   sort.Slice(s, func (i, j int) bool {
+    return s[j] > s[i]
+  })
+}
+func SortReverse(s []int64) {
+  sort.Slice(s, func (i, j int) bool {
     return s[i] > s[j]
   })
 }

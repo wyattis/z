@@ -31,11 +31,21 @@ func Equal(a []{{.Type}}, b []{{.Type}}) bool {
 {{- if .IsString}}
 func Sort(s []{{.Type}}) {
   sort.Slice(s, func (i, j int) bool {
+    return strings.Compare(s[j], s[i]) > 0
+  })
+}
+func SortReverse(s []{{.Type}}) {
+  sort.Slice(s, func (i, j int) bool {
     return strings.Compare(s[i], s[j]) > 0
   })
 }
 {{- else}}
 func Sort(s []{{.Type}}) {
+  sort.Slice(s, func (i, j int) bool {
+    return s[j] > s[i]
+  })
+}
+func SortReverse(s []{{.Type}}) {
   sort.Slice(s, func (i, j int) bool {
     return s[i] > s[j]
   })
