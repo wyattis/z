@@ -3,17 +3,35 @@ package zsql
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 
 	"github.com/jmoiron/sqlx"
 )
 
-type Tx interface {
+type base interface {
 	Exec(query string, arguments ...interface{}) (r sql.Result, err error)
 	ExecContext(ctx context.Context, query string, arguments ...interface{}) (r sql.Result, err error)
 	Query(query string, args ...interface{}) (rows *sql.Rows, err error)
 	QueryContext(ctx context.Context, query string, args ...interface{}) (rows *sql.Rows, err error)
 	QueryRow(query string, args ...interface{}) (row *sql.Row)
 	QueryRowContext(ctx context.Context, query string, args ...interface{}) (row *sql.Row)
+}
+
+type DB interface {
+	base
+	Driver() driver.Driver
+	Begin() (*sql.Tx, error)
+	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
+}
+
+type DBx interface {
+	DB
+	Beginx() (*sqlx.Tx, error)
+	BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error)
+}
+
+type Tx interface {
+	base
 	Stmt(stmt *sql.Stmt) (s *sql.Stmt)
 	StmtContext(ctx context.Context, stmt *sql.Stmt) (s *sql.Stmt)
 }
@@ -28,15 +46,7 @@ type Txx interface {
 	NamedStmtContext(ctx context.Context, stmt *sqlx.NamedStmt) (ns *sqlx.NamedStmt)
 	NamedQuery(query string, arguments interface{}) (rows *sqlx.Rows, err error)
 }
-type DB interface {
-	Begin() (*sql.Tx, error)
-	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
-}
-type DBx interface {
-	DB
-	Beginx() (*sqlx.Tx, error)
-	BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error)
-}
+
 type TxHandler = func(tx Tx) error
 type TxxHandler = func(tx Txx) error
 

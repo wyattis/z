@@ -59,7 +59,7 @@ func New(source fs.ReadDirFS, db *sql.DB, config *Config) *Migrator {
 
 type Migrator struct {
 	Source        fs.ReadDirFS
-	db            *sql.DB
+	db            zsql.DB
 	config        Config
 	isInitialized bool
 	mut           *sync.Mutex

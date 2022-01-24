@@ -1,13 +1,14 @@
 package drivers
 
 import (
-	"database/sql"
 	"errors"
+
+	"github.com/wyattis/z/zsql"
 )
 
 type Driver interface {
-	Matches(*sql.DB) bool
-	GetSchema(*sql.DB) (Schema, error)
+	Matches(zsql.DB) bool
+	GetSchema(zsql.DB) (Schema, error)
 	IsNoTableErr(error) bool
 }
 
@@ -75,7 +76,7 @@ func (i *Index) Matches(other Index) bool {
 
 var drivers = []Driver{}
 
-func Get(db *sql.DB) (Driver, error) {
+func Get(db zsql.DB) (Driver, error) {
 	for _, d := range drivers {
 		if d.Matches(db) {
 			return d, nil
