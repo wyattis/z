@@ -126,11 +126,11 @@ func (m *Migrator) ToVersion(version int) (err error) {
 	}
 	// if there are conflicts we throw an error.
 	if version > currentVersion {
-		return m.withTx(func(tx zsql.Exec) error {
+		return m.withTx(func(tx zsql.Tx) error {
 			return m.up(tx, availableUp[currentVersion:version])
 		})
 	} else {
-		return m.withTx(func(tx zsql.Exec) error {
+		return m.withTx(func(tx zsql.Tx) error {
 			return m.down(tx, m.reverse(availableDown[version:currentVersion]))
 		})
 	}
@@ -138,9 +138,9 @@ func (m *Migrator) ToVersion(version int) (err error) {
 
 func (m *Migrator) withTx(handler zsql.TxHandler) (err error) {
 	if m.config.SkipTransaction {
-		return zsql.WithoutTx(m.db, handler)
+		return zsql.WithBeginNOP(m.db, handler)
 	} else {
-		return zsql.WithTx(m.db, handler)
+		return zsql.WithBegin(m.db, handler)
 	}
 }
 

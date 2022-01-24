@@ -184,6 +184,8 @@ func Remove(slice []int16, offset int, values ...int16) (res []int16) {
 }
 
 // Remove the item at the index while preserving the order of the items
+// TODO: maybe change this to take multiple indices and to remove them at the 
+// same time
 func RemoveAt(slice []int16, index int) (res []int16) {
   if index >= len(slice) {
     panic("index cannot be greater than len(slice)")
