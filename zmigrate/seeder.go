@@ -88,7 +88,21 @@ func (s *Seeder) SeedTo(name string, targetVersion int) (err error) {
 		return fmt.Errorf("target version of %d is not valid for current version %d.\n target version cannot be below current version", targetVersion, currentVersion)
 	}
 	// perform the seeds required to advance to the desired version
-	return s.exec(s.seeds[name][currentVersion : targetVersion+1])
+	seeds := s.seeds[name][currentVersion : targetVersion+1]
+	ctx := context.Background()
+	err = zsql.WithBeginTx(s.db, func(tx zsql.Tx) (err error) {
+		if err = s.runSeeds(ctx, seeds, tx); err != nil {
+			return
+		}
+		return s.insertSeed(tx, name, targetVersion)
+	}, ctx, nil)
+	return
+}
+
+func (s *Seeder) insertSeed(tx zsql.Tx, name string, version int) error {
+	q := fmt.Sprintf("INSERT INTO %s (name, version) VALUES (?, ?)", s.config.TableName)
+	_, err := tx.Exec(q, name, version)
+	return err
 }
 
 func (s *Seeder) init() (err error) {
@@ -120,16 +134,13 @@ func (s *Seeder) sortByVersion() {
 	}
 }
 
-func (s *Seeder) exec(seeds []Seed) error {
-	ctx := context.Background()
-	return zsql.WithBeginTx(s.db, func(tx zsql.Tx) (err error) {
-		for _, seed := range seeds {
-			if err = seed.Handler(ctx, tx, seed); err != nil {
-				return
-			}
+func (s *Seeder) runSeeds(ctx context.Context, seeds []Seed, tx zsql.Tx) (err error) {
+	for _, seed := range seeds {
+		if err = seed.Handler(ctx, tx, seed); err != nil {
+			return
 		}
-		return
-	}, ctx, nil)
+	}
+	return
 }
 
 func (s *Seeder) getCurrentVersion(name string) (version int, err error) {
