@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/wyattis/z/zmigrate/drivers"
+	"github.com/wyattis/z/zslice/zstrings"
 	"github.com/wyattis/z/zsql"
 	"github.com/wyattis/z/zstring"
 )
@@ -28,6 +29,7 @@ var (
 
 type Config struct {
 	Table           string
+	IgnoredTables   []string
 	SkipTransaction bool
 }
 
@@ -35,9 +37,9 @@ func (c *Config) applyDefaults() {
 	if c.Table == "" {
 		c.Table = "migrations"
 	}
-	// if c.DirName == "" {
-	// 	c.DirName = "migrations"
-	// }
+	if c.IgnoredTables == nil {
+		c.IgnoredTables = []string{"seeds"}
+	}
 }
 
 type migration struct {
@@ -78,7 +80,7 @@ func (m *Migrator) GetSchema() (schema drivers.Schema, err error) {
 		return
 	}
 	for _, table := range res {
-		if table.Name != m.config.Table {
+		if table.Name != m.config.Table && !zstrings.Contains(m.config.IgnoredTables, table.Name) {
 			schema = append(schema, table)
 		}
 	}

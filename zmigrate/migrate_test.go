@@ -22,7 +22,7 @@ func loadSchema(path string) string {
 	return strings.Trim(string(raw), "; \n")
 }
 func TestToVersion1(t *testing.T) {
-	db, err := sql.Open("sqlite3", "test.db?mode=memory")
+	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Error(err)
 	}

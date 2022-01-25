@@ -2,7 +2,9 @@ package zmigrate
 
 import (
 	"context"
+	"database/sql"
 	_ "embed"
+	"errors"
 	"fmt"
 	"sort"
 	"sync"
@@ -108,7 +110,7 @@ func (s *Seeder) SeedTo(name string, targetVersion int) (err error) {
 		return fmt.Errorf("target version of %d is not valid for current version %d.\n target version cannot be below current version", targetVersion, currentVersion)
 	}
 	// perform the seeds required to advance to the desired version
-	seeds := s.seeds[name][currentVersion : targetVersion+1]
+	seeds := s.seeds[name][currentVersion:targetVersion]
 	ctx := context.Background()
 	err = zsql.WithBeginTx(s.db, func(tx zsql.Tx) (err error) {
 		if err = s.runSeeds(ctx, seeds, tx); err != nil {
@@ -132,10 +134,9 @@ func (s *Seeder) init() (err error) {
 		return
 	}
 	s.sortByVersion()
-	fmt.Println(s.seeds)
 	q := fmt.Sprintf("SELECT * FROM %s LIMIT 1", s.config.TableName)
-	_, err = s.db.Exec(q)
-	if s.driver.IsNoTableErr(err) {
+	r := s.db.QueryRow(q)
+	if s.driver.IsNoTableErr(r.Err()) {
 		q = fmt.Sprintf(seedSchema, s.config.TableName)
 		if _, err = s.db.Exec(q); err != nil {
 			return
@@ -164,12 +165,15 @@ func (s *Seeder) runSeeds(ctx context.Context, seeds []Seed, tx zsql.Tx) (err er
 }
 
 func (s *Seeder) getCurrentVersion(name string) (version int, err error) {
-	q := fmt.Sprintf("SELECT version FROM %s WHERE name=?", name)
+	q := fmt.Sprintf("SELECT version FROM %s WHERE name=? ORDER BY version DESC LIMIT 1", s.config.TableName)
 	row := s.db.QueryRowContext(context.Background(), q, name)
 	if err = row.Err(); err != nil {
 		return
 	}
 	err = row.Scan(&version)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
 	return
 }
 
