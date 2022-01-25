@@ -112,8 +112,10 @@ func (s *Seeder) SeedTo(name string, targetVersion int) (err error) {
 	// perform the seeds required to advance to the desired version
 	seeds := s.seeds[name][currentVersion:targetVersion]
 	ctx := context.Background()
-	if db, isDBx := s.db.(zsql.DBx); isDBx {
-		return zsql.WithBeginTxx(db, func(tx zsql.Txx) (err error) {
+	dbx, isDBx := s.db.(zsql.DBx)
+	fmt.Println(isDBx)
+	if isDBx {
+		return zsql.WithBeginTxx(dbx, func(tx zsql.Txx) (err error) {
 			if err = s.runSeeds(ctx, seeds, tx); err != nil {
 				return
 			}
