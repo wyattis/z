@@ -1,0 +1,5 @@
+CREATE TABLE %s (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  version INTEGER NOT NULL
+);

@@ -18,7 +18,7 @@ import (
 	"github.com/wyattis/z/zstring"
 )
 
-//go:embed schema.sql
+//go:embed migration-schema.sql
 var schema string
 
 var (
@@ -49,7 +49,7 @@ type migration struct {
 	CreatedAt uint64 `db:"created_at"`
 }
 
-func New(source fs.ReadDirFS, db *sql.DB, config *Config) *Migrator {
+func New(source fs.ReadDirFS, db zsql.DB, config *Config) *Migrator {
 	if config == nil {
 		config = &Config{}
 	}
@@ -68,10 +68,7 @@ type Migrator struct {
 	currentId int
 }
 
-type Exec interface {
-	Exec(q string, arguments ...interface{}) (sql.Result, error)
-}
-
+// Get a schema representation based on the underlying driver
 func (m *Migrator) GetSchema() (schema drivers.Schema, err error) {
 	if err = m.init(); err != nil {
 		return
@@ -89,13 +86,13 @@ func (m *Migrator) GetSchema() (schema drivers.Schema, err error) {
 }
 
 // Migrate to the latest version
-func (m *Migrator) ToLatest() (err error) {
-	if err = m.init(); err != nil {
-		return
-	}
-	// TODO: determine the latest version id and call `m.ToVersion`
-	return
-}
+// func (m *Migrator) ToLatest() (err error) {
+// 	if err = m.init(); err != nil {
+// 		return
+// 	}
+// 	// TODO: determine the latest version id and call `m.ToVersion`
+// 	return
+// }
 
 // Migrate up or down to a specific state in the db. This allows you to work on
 // your schema without ruining existing environments by locking it to a version.
@@ -144,7 +141,7 @@ func (m *Migrator) withTx(handler zsql.TxHandler) (err error) {
 	}
 }
 
-func (m *Migrator) up(tx Exec, migrations []migration) (err error) {
+func (m *Migrator) up(tx zsql.Tx, migrations []migration) (err error) {
 	if err != nil {
 		return
 	}
@@ -160,7 +157,7 @@ func (m *Migrator) up(tx Exec, migrations []migration) (err error) {
 	return
 }
 
-func (m *Migrator) down(tx Exec, migrations []migration) (err error) {
+func (m *Migrator) down(tx zsql.Tx, migrations []migration) (err error) {
 	qDelete := fmt.Sprintf("DELETE FROM %s where id=?", m.config.Table)
 	for _, m := range migrations {
 		if _, err = tx.Exec(m.SQL); err != nil {
