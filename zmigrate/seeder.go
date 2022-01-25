@@ -38,6 +38,7 @@ func NewSeeder(db zsql.DB, config *SeederConfig) (s *Seeder, err error) {
 }
 
 type SeedHandler func(ctx context.Context, tx zsql.Tx, seed Seed) error
+type SeedHandlerx func(ctx context.Context, tx zsql.Txx, seed Seed) error
 
 type Seed struct {
 	Name    string
@@ -63,6 +64,25 @@ func (s *Seeder) AddSeed(name string, version int, handler SeedHandler) *Seeder 
 		Name:    name,
 		Version: version,
 		Handler: handler,
+	})
+	return s
+}
+
+func (s *Seeder) AddSeedx(name string, version int, handler SeedHandlerx) *Seeder {
+	if _, exists := s.seeds[name]; !exists {
+		s.seeds[name] = make([]Seed, 0)
+	}
+	nHandler := func(ctx context.Context, tx zsql.Tx, seed Seed) error {
+		txx, ok := tx.(zsql.Txx)
+		if !ok {
+			panic("AddSeedx used without zsql.DBx connection")
+		}
+		return handler(ctx, txx, seed)
+	}
+	s.seeds[name] = append(s.seeds[name], Seed{
+		Name:    name,
+		Version: version,
+		Handler: nHandler,
 	})
 	return s
 }
