@@ -15,14 +15,21 @@ func SetDefaults(val interface{}) (err error) {
 	if reflect.TypeOf(val).Kind() != reflect.Ptr {
 		return errors.New("value must be a pointer")
 	}
-	v := reflect.Indirect(reflect.ValueOf(val))
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		if !field.IsZero() {
+	return setDefaultsRecursive(reflect.Indirect(reflect.ValueOf(val)))
+}
+
+func setDefaultsRecursive(val reflect.Value) (err error) {
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		t := val.Type().Field(i)
+		k := field.Kind()
+		if field.Kind() == reflect.Struct {
+			if err = setDefaultsRecursive(field); err != nil {
+				return
+			}
+		} else if !field.IsZero() {
 			continue
 		}
-		t := v.Type().Field(i)
-		k := field.Kind()
 		defaultValue := t.Tag.Get("default")
 		if defaultValue != "" {
 			conv, exists := convMap[k]
@@ -154,7 +161,6 @@ var convMap = map[reflect.Kind]typeConv{
 		parts := strings.Split(val, ",")
 		elem := field.Type().Elem()
 		res = reflect.MakeSlice(reflect.SliceOf(elem), 0, len(parts))
-		fmt.Println("reflect.Slice", parts, field, elem, res)
 		for _, p := range parts {
 			conv, exists := convMap[elem.Kind()]
 			if exists {
