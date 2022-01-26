@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type typeConv func(val string, field reflect.Value, m conversionMap) (reflect.Value, error)
@@ -23,15 +24,20 @@ func setDefaultsRecursive(val reflect.Value) (err error) {
 		field := val.Field(i)
 		t := val.Type().Field(i)
 		k := field.Kind()
-		if field.Kind() == reflect.Struct {
+		defaultValue := t.Tag.Get("default")
+		if field.Type() == reflect.TypeOf(time.Time{}) {
+			t, err := parseTime(defaultValue, t.Tag.Get("format"))
+			if err != nil {
+				return err
+			}
+			field.Set(reflect.ValueOf(t))
+		} else if k == reflect.Struct {
 			if err = setDefaultsRecursive(field); err != nil {
 				return
 			}
 		} else if !field.IsZero() {
 			continue
-		}
-		defaultValue := t.Tag.Get("default")
-		if defaultValue != "" {
+		} else if defaultValue != "" {
 			conv, exists := convMap[k]
 			if exists {
 				val, err := conv(defaultValue, field, convMap)
@@ -43,6 +49,8 @@ func setDefaultsRecursive(val reflect.Value) (err error) {
 				fmt.Println("Skipping", t, k)
 				// TODO: check if there is a custom setter for the type
 			}
+		} else {
+			panic("what happened here")
 		}
 	}
 	return
@@ -93,7 +101,15 @@ var convMap = map[reflect.Kind]typeConv{
 		v = reflect.ValueOf(int32(i))
 		return
 	},
-	reflect.Int64: func(val string, _ reflect.Value, _ conversionMap) (v reflect.Value, err error) {
+	reflect.Int64: func(val string, field reflect.Value, _ conversionMap) (v reflect.Value, err error) {
+		if field.Type() == reflect.TypeOf(time.Second) {
+			dur, err := time.ParseDuration(val)
+			if err != nil {
+				return v, err
+			}
+			v = reflect.ValueOf(dur)
+			return v, err
+		}
 		i, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
 			return
@@ -176,4 +192,35 @@ var convMap = map[reflect.Kind]typeConv{
 		}
 		return
 	},
+}
+
+var timeFormats = []string{
+	time.Kitchen,
+	"15:04",
+	"15:04:05",
+	"15:04:05 MST",
+	"2006-01-02",
+	time.RFC3339,
+	time.RFC3339Nano,
+	time.RFC1123,
+	time.RFC1123Z,
+	time.RFC850,
+	time.RFC850,
+	time.RFC822Z,
+	time.RFC822,
+	time.RubyDate,
+	time.UnixDate,
+	time.ANSIC,
+}
+
+func parseTime(val string, format string) (t time.Time, err error) {
+	formats := strings.Split(format, ";")
+	formats = append(formats, timeFormats...)
+	for _, format = range formats {
+		if t, err = time.Parse(format, val); err == nil {
+			return
+		}
+	}
+	err = fmt.Errorf("failed to parse the time %s. Attempted %d formats. Please provide a format.", val, len(timeFormats))
+	return
 }
