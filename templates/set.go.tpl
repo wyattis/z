@@ -2,23 +2,23 @@
 
 package {{.PackageName}}
 
-func New() *{{title .TypeName}}Set {
-	return &{{title .TypeName}}Set{
+func New() *Set {
+	return &Set{
 		items: make(map[{{.Type}}]bool),
 	}
 }
 
-type {{title .TypeName}}Set struct {
+type Set struct {
 	items map[{{.Type}}]bool
 }
 
-func (s *{{title .TypeName}}Set) Add(items ...{{ .Type }}) {
+func (s *Set) Add(items ...{{ .Type }}) {
 	for _, item := range items {
 		s.items[item] = true
 	}
 }
 
-func (s {{title .TypeName}}Set) Contains(items ...{{ .Type }}) bool {
+func (s Set) Contains(items ...{{ .Type }}) bool {
 	for _, item := range items {
 		if _, exists := s.items[item]; !exists {
 			return false
@@ -27,28 +27,28 @@ func (s {{title .TypeName}}Set) Contains(items ...{{ .Type }}) bool {
 	return true
 }
 
-func (s *{{title .TypeName}}Set) Delete(items ...{{ .Type }}) {
+func (s *Set) Delete(items ...{{ .Type }}) {
 	for _, item := range items {
 		delete(s.items, item)
 	}
 }
 
-func (s *{{title .TypeName}}Set) Clear() {
+func (s *Set) Clear() {
 	s.items = make(map[{{.Type}}]bool)
 }
 
-func (s *{{title .TypeName}}Set) Size() int {
+func (s *Set) Size() int {
 	return len(s.items)
 }
 
-func (s *{{title .TypeName}}Set) Items() (res []{{.Type}}) {
+func (s *Set) Items() (res []{{.Type}}) {
 	for key := range s.items {
 		res = append(res, key)
 	}
 	return
 }
 
-func (s *{{title .TypeName}}Set) Union(others ...{{title .TypeName}}Set) {
+func (s *Set) Union(others ...Set) {
 	for _, b := range others {
 		for key := range b.items {
 			s.items[key] = true
@@ -56,7 +56,7 @@ func (s *{{title .TypeName}}Set) Union(others ...{{title .TypeName}}Set) {
 	}
 }
 
-func (s *{{title .TypeName}}Set) Complement(others ...{{title .TypeName}}Set) {
+func (s *Set) Complement(others ...Set) {
 	for _, b := range others {
 		for key := range b.items {
 			delete(s.items, key)
@@ -64,7 +64,7 @@ func (s *{{title .TypeName}}Set) Complement(others ...{{title .TypeName}}Set) {
 	}
 }
 
-func (s *{{title .TypeName}}Set) Clone() *{{title .TypeName}}Set {
+func (s *Set) Clone() *Set {
 	res := New()
 	res.Add(s.Items()...)
 	return res

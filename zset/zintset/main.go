@@ -2,23 +2,23 @@
 
 package zintset
 
-func New() *IntSet {
-	return &IntSet{
+func New() *Set {
+	return &Set{
 		items: make(map[int]bool),
 	}
 }
 
-type IntSet struct {
+type Set struct {
 	items map[int]bool
 }
 
-func (s *IntSet) Add(items ...int) {
+func (s *Set) Add(items ...int) {
 	for _, item := range items {
 		s.items[item] = true
 	}
 }
 
-func (s IntSet) Contains(items ...int) bool {
+func (s Set) Contains(items ...int) bool {
 	for _, item := range items {
 		if _, exists := s.items[item]; !exists {
 			return false
@@ -27,28 +27,28 @@ func (s IntSet) Contains(items ...int) bool {
 	return true
 }
 
-func (s *IntSet) Delete(items ...int) {
+func (s *Set) Delete(items ...int) {
 	for _, item := range items {
 		delete(s.items, item)
 	}
 }
 
-func (s *IntSet) Clear() {
+func (s *Set) Clear() {
 	s.items = make(map[int]bool)
 }
 
-func (s *IntSet) Size() int {
+func (s *Set) Size() int {
 	return len(s.items)
 }
 
-func (s *IntSet) Items() (res []int) {
+func (s *Set) Items() (res []int) {
 	for key := range s.items {
 		res = append(res, key)
 	}
 	return
 }
 
-func (s *IntSet) Union(others ...IntSet) {
+func (s *Set) Union(others ...Set) {
 	for _, b := range others {
 		for key := range b.items {
 			s.items[key] = true
@@ -56,7 +56,7 @@ func (s *IntSet) Union(others ...IntSet) {
 	}
 }
 
-func (s *IntSet) Complement(others ...IntSet) {
+func (s *Set) Complement(others ...Set) {
 	for _, b := range others {
 		for key := range b.items {
 			delete(s.items, key)
@@ -64,7 +64,7 @@ func (s *IntSet) Complement(others ...IntSet) {
 	}
 }
 
-func (s *IntSet) Clone() *IntSet {
+func (s *Set) Clone() *Set {
 	res := New()
 	res.Add(s.Items()...)
 	return res

@@ -2,23 +2,23 @@
 
 package zuintset
 
-func New() *UintSet {
-	return &UintSet{
+func New() *Set {
+	return &Set{
 		items: make(map[uint]bool),
 	}
 }
 
-type UintSet struct {
+type Set struct {
 	items map[uint]bool
 }
 
-func (s *UintSet) Add(items ...uint) {
+func (s *Set) Add(items ...uint) {
 	for _, item := range items {
 		s.items[item] = true
 	}
 }
 
-func (s UintSet) Contains(items ...uint) bool {
+func (s Set) Contains(items ...uint) bool {
 	for _, item := range items {
 		if _, exists := s.items[item]; !exists {
 			return false
@@ -27,28 +27,28 @@ func (s UintSet) Contains(items ...uint) bool {
 	return true
 }
 
-func (s *UintSet) Delete(items ...uint) {
+func (s *Set) Delete(items ...uint) {
 	for _, item := range items {
 		delete(s.items, item)
 	}
 }
 
-func (s *UintSet) Clear() {
+func (s *Set) Clear() {
 	s.items = make(map[uint]bool)
 }
 
-func (s *UintSet) Size() int {
+func (s *Set) Size() int {
 	return len(s.items)
 }
 
-func (s *UintSet) Items() (res []uint) {
+func (s *Set) Items() (res []uint) {
 	for key := range s.items {
 		res = append(res, key)
 	}
 	return
 }
 
-func (s *UintSet) Union(others ...UintSet) {
+func (s *Set) Union(others ...Set) {
 	for _, b := range others {
 		for key := range b.items {
 			s.items[key] = true
@@ -56,7 +56,7 @@ func (s *UintSet) Union(others ...UintSet) {
 	}
 }
 
-func (s *UintSet) Complement(others ...UintSet) {
+func (s *Set) Complement(others ...Set) {
 	for _, b := range others {
 		for key := range b.items {
 			delete(s.items, key)
@@ -64,7 +64,7 @@ func (s *UintSet) Complement(others ...UintSet) {
 	}
 }
 
-func (s *UintSet) Clone() *UintSet {
+func (s *Set) Clone() *Set {
 	res := New()
 	res.Add(s.Items()...)
 	return res

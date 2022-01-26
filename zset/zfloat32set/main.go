@@ -2,23 +2,23 @@
 
 package zfloat32set
 
-func New() *Float32Set {
-	return &Float32Set{
+func New() *Set {
+	return &Set{
 		items: make(map[float32]bool),
 	}
 }
 
-type Float32Set struct {
+type Set struct {
 	items map[float32]bool
 }
 
-func (s *Float32Set) Add(items ...float32) {
+func (s *Set) Add(items ...float32) {
 	for _, item := range items {
 		s.items[item] = true
 	}
 }
 
-func (s Float32Set) Contains(items ...float32) bool {
+func (s Set) Contains(items ...float32) bool {
 	for _, item := range items {
 		if _, exists := s.items[item]; !exists {
 			return false
@@ -27,28 +27,28 @@ func (s Float32Set) Contains(items ...float32) bool {
 	return true
 }
 
-func (s *Float32Set) Delete(items ...float32) {
+func (s *Set) Delete(items ...float32) {
 	for _, item := range items {
 		delete(s.items, item)
 	}
 }
 
-func (s *Float32Set) Clear() {
+func (s *Set) Clear() {
 	s.items = make(map[float32]bool)
 }
 
-func (s *Float32Set) Size() int {
+func (s *Set) Size() int {
 	return len(s.items)
 }
 
-func (s *Float32Set) Items() (res []float32) {
+func (s *Set) Items() (res []float32) {
 	for key := range s.items {
 		res = append(res, key)
 	}
 	return
 }
 
-func (s *Float32Set) Union(others ...Float32Set) {
+func (s *Set) Union(others ...Set) {
 	for _, b := range others {
 		for key := range b.items {
 			s.items[key] = true
@@ -56,7 +56,7 @@ func (s *Float32Set) Union(others ...Float32Set) {
 	}
 }
 
-func (s *Float32Set) Complement(others ...Float32Set) {
+func (s *Set) Complement(others ...Set) {
 	for _, b := range others {
 		for key := range b.items {
 			delete(s.items, key)
@@ -64,7 +64,7 @@ func (s *Float32Set) Complement(others ...Float32Set) {
 	}
 }
 
-func (s *Float32Set) Clone() *Float32Set {
+func (s *Set) Clone() *Set {
 	res := New()
 	res.Add(s.Items()...)
 	return res

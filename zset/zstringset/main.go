@@ -2,23 +2,23 @@
 
 package zstringset
 
-func New() *StringSet {
-	return &StringSet{
+func New() *Set {
+	return &Set{
 		items: make(map[string]bool),
 	}
 }
 
-type StringSet struct {
+type Set struct {
 	items map[string]bool
 }
 
-func (s *StringSet) Add(items ...string) {
+func (s *Set) Add(items ...string) {
 	for _, item := range items {
 		s.items[item] = true
 	}
 }
 
-func (s StringSet) Contains(items ...string) bool {
+func (s Set) Contains(items ...string) bool {
 	for _, item := range items {
 		if _, exists := s.items[item]; !exists {
 			return false
@@ -27,28 +27,28 @@ func (s StringSet) Contains(items ...string) bool {
 	return true
 }
 
-func (s *StringSet) Delete(items ...string) {
+func (s *Set) Delete(items ...string) {
 	for _, item := range items {
 		delete(s.items, item)
 	}
 }
 
-func (s *StringSet) Clear() {
+func (s *Set) Clear() {
 	s.items = make(map[string]bool)
 }
 
-func (s *StringSet) Size() int {
+func (s *Set) Size() int {
 	return len(s.items)
 }
 
-func (s *StringSet) Items() (res []string) {
+func (s *Set) Items() (res []string) {
 	for key := range s.items {
 		res = append(res, key)
 	}
 	return
 }
 
-func (s *StringSet) Union(others ...StringSet) {
+func (s *Set) Union(others ...Set) {
 	for _, b := range others {
 		for key := range b.items {
 			s.items[key] = true
@@ -56,7 +56,7 @@ func (s *StringSet) Union(others ...StringSet) {
 	}
 }
 
-func (s *StringSet) Complement(others ...StringSet) {
+func (s *Set) Complement(others ...Set) {
 	for _, b := range others {
 		for key := range b.items {
 			delete(s.items, key)
@@ -64,7 +64,7 @@ func (s *StringSet) Complement(others ...StringSet) {
 	}
 }
 
-func (s *StringSet) Clone() *StringSet {
+func (s *Set) Clone() *Set {
 	res := New()
 	res.Add(s.Items()...)
 	return res

@@ -11,6 +11,8 @@ import (
 	"unsafe"
 )
 
+// Use reflection infer options for a flag.FlagSet based on the types and tags
+// defined on a struct
 func ReflectStruct(set *flag.FlagSet, config interface{}) (err error) {
 	if reflect.TypeOf(config).Kind() != reflect.Ptr {
 		return errors.New("config must be a pointer")

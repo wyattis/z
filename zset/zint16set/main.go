@@ -2,23 +2,23 @@
 
 package zint16set
 
-func New() *Int16Set {
-	return &Int16Set{
+func New() *Set {
+	return &Set{
 		items: make(map[int16]bool),
 	}
 }
 
-type Int16Set struct {
+type Set struct {
 	items map[int16]bool
 }
 
-func (s *Int16Set) Add(items ...int16) {
+func (s *Set) Add(items ...int16) {
 	for _, item := range items {
 		s.items[item] = true
 	}
 }
 
-func (s Int16Set) Contains(items ...int16) bool {
+func (s Set) Contains(items ...int16) bool {
 	for _, item := range items {
 		if _, exists := s.items[item]; !exists {
 			return false
@@ -27,28 +27,28 @@ func (s Int16Set) Contains(items ...int16) bool {
 	return true
 }
 
-func (s *Int16Set) Delete(items ...int16) {
+func (s *Set) Delete(items ...int16) {
 	for _, item := range items {
 		delete(s.items, item)
 	}
 }
 
-func (s *Int16Set) Clear() {
+func (s *Set) Clear() {
 	s.items = make(map[int16]bool)
 }
 
-func (s *Int16Set) Size() int {
+func (s *Set) Size() int {
 	return len(s.items)
 }
 
-func (s *Int16Set) Items() (res []int16) {
+func (s *Set) Items() (res []int16) {
 	for key := range s.items {
 		res = append(res, key)
 	}
 	return
 }
 
-func (s *Int16Set) Union(others ...Int16Set) {
+func (s *Set) Union(others ...Set) {
 	for _, b := range others {
 		for key := range b.items {
 			s.items[key] = true
@@ -56,7 +56,7 @@ func (s *Int16Set) Union(others ...Int16Set) {
 	}
 }
 
-func (s *Int16Set) Complement(others ...Int16Set) {
+func (s *Set) Complement(others ...Set) {
 	for _, b := range others {
 		for key := range b.items {
 			delete(s.items, key)
@@ -64,7 +64,7 @@ func (s *Int16Set) Complement(others ...Int16Set) {
 	}
 }
 
-func (s *Int16Set) Clone() *Int16Set {
+func (s *Set) Clone() *Set {
 	res := New()
 	res.Add(s.Items()...)
 	return res
