@@ -49,8 +49,6 @@ func setDefaultsRecursive(val reflect.Value) (err error) {
 				fmt.Println("Skipping", t, k)
 				// TODO: check if there is a custom setter for the type
 			}
-		} else {
-			panic("what happened here")
 		}
 	}
 	return
