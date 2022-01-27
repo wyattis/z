@@ -149,6 +149,14 @@ func Split(slice []uint64, separator uint64) (parts [][]uint64) {
 	return
 }
 
+// Fill a slice with the given value
+func Fill (slice []uint64, val uint64) []uint64 {
+  for i := range slice {
+    slice[i] = val
+  }
+  return slice
+}
+
 // // Split the slice into one or more slices using multiple separators
 // func SplitMany(slice []uint64, seperators ...uint64) (parts [][]uint64) {
 // 	parts = append(parts, slice)

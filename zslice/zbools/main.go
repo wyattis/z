@@ -149,6 +149,14 @@ func Split(slice []bool, separator bool) (parts [][]bool) {
 	return
 }
 
+// Fill a slice with the given value
+func Fill (slice []bool, val bool) []bool {
+  for i := range slice {
+    slice[i] = val
+  }
+  return slice
+}
+
 // // Split the slice into one or more slices using multiple separators
 // func SplitMany(slice []bool, seperators ...bool) (parts [][]bool) {
 // 	parts = append(parts, slice)

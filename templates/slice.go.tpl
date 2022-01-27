@@ -179,6 +179,14 @@ func Split(slice []{{.Type}}, separator {{.Type}}) (parts [][]{{.Type}}) {
 	return
 }
 
+// Fill a slice with the given value
+func Fill (slice []{{.Type}}, val {{.Type}}) []{{.Type}} {
+  for i := range slice {
+    slice[i] = val
+  }
+  return slice
+}
+
 // // Split the slice into one or more slices using multiple separators
 // func SplitMany(slice []{{.Type}}, seperators ...{{.Type}}) (parts [][]{{.Type}}) {
 // 	parts = append(parts, slice)
