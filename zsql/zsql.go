@@ -3,6 +3,9 @@ package zsql
 import (
 	"context"
 	"database/sql"
+	"strings"
+
+	"github.com/wyattis/z/zslice/zstrings"
 )
 
 // Execute db.Begin with a closure
@@ -73,4 +76,9 @@ func WithBeginNOP(db DB, handler TxHandler) (err error) {
 // WithBeginx without actuallly starting a transaction
 func WithBeginxNOP(db DBx, handler TxxHandler) (err error) {
 	return handler(nopExec{})
+}
+
+// Return a string of params the same length as the parameters
+func ParamsFor(vals ...string) string {
+	return strings.Join(zstrings.Fill(make([]string, len(vals)), "?"), ", ")
 }

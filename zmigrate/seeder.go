@@ -96,21 +96,29 @@ func (s *Seeder) SeedTo(name string, targetVersion int) (err error) {
 		return
 	}
 	// validate this key/version pair has been registered
-	if !s.hasRegisteredSeed(name, targetVersion) {
+	targetIndex := -1
+	for i := range s.seeds[name] {
+		if s.seeds[name][i].Version == targetVersion {
+			targetIndex = i
+			break
+		}
+	}
+	if targetIndex < 0 {
 		return fmt.Errorf("no seed registered for %s (%d)", name, targetVersion)
 	}
 
 	// determine the current seed version
-	currentVersion, err := s.getCurrentVersion(name)
+	currentVersion, currentIndex, err := s.getCurrentVersion(name)
 	if err != nil {
 		return
 	}
+
 	// validate that the new version is higher than the current
 	if currentVersion > targetVersion {
 		return fmt.Errorf("target version of %d is not valid for current version %d.\n target version cannot be below current version", targetVersion, currentVersion)
 	}
 	// perform the seeds required to advance to the desired version
-	seeds := s.seeds[name][currentVersion:targetVersion]
+	seeds := s.seeds[name][currentIndex : targetIndex+1]
 	ctx := context.Background()
 	dbx, isDBx := s.db.(zsql.DBx)
 	if isDBx {
@@ -159,7 +167,7 @@ func (s *Seeder) init() (err error) {
 func (s *Seeder) sortByVersion() {
 	for key := range s.seeds {
 		sort.Slice(s.seeds[key], func(a, b int) bool {
-			return s.seeds[key][a].Version > s.seeds[key][b].Version
+			return s.seeds[key][a].Version < s.seeds[key][b].Version
 		})
 	}
 }
@@ -173,13 +181,22 @@ func (s *Seeder) runSeeds(ctx context.Context, seeds []Seed, tx zsql.Tx) (err er
 	return
 }
 
-func (s *Seeder) getCurrentVersion(name string) (version int, err error) {
+func (s *Seeder) getCurrentVersion(name string) (version int, index int, err error) {
 	q := fmt.Sprintf("SELECT version FROM %s WHERE name=? ORDER BY version DESC LIMIT 1", s.config.TableName)
-	row := s.db.QueryRowContext(context.Background(), q, name)
+	row := s.db.QueryRow(q, name)
 	if err = row.Err(); err != nil {
 		return
 	}
 	err = row.Scan(&version)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
+	q = fmt.Sprintf("SELECT count(*) as c FROM %s WHERE name=? ORDER BY version DESC LIMIT 1", s.config.TableName)
+	row = s.db.QueryRow(q, name)
+	if err = row.Err(); err != nil {
+		return
+	}
+	err = row.Scan(&index)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
