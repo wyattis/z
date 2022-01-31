@@ -15,7 +15,7 @@ type baseConfig struct {
 	Uint64  uint64
 	Float64 float64
 	String  string `flag:"name"`
-	Bool    bool   `usage:"make this available"`
+	Bool    bool   `flag:",,make this available"`
 	Dur     time.Duration
 }
 

@@ -22,15 +22,22 @@ func ReflectStruct(set *flag.FlagSet, config interface{}) (err error) {
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
 		t := v.Type().Field(i)
-		name := zstring.CamelToSnake(t.Name, "-")
+		defaultVal := t.Tag.Get("default")
+		var found bool
+		var name, usage string
 		if tag := t.Tag.Get("flag"); tag != "" {
-			name = tag
+			// using cut here to allow commas in the usage string at the end
+			name, defaultVal, found = zstring.Cut(tag, ",")
+			if found && defaultVal != "" {
+				defaultVal, usage, found = zstring.Cut(defaultVal, ",")
+			}
 		}
-		usage := t.Tag.Get("usage")
+		if name == "" {
+			name = zstring.CamelToSnake(t.Name, "-")
+		}
 		if usage == "" {
 			usage = fmt.Sprintf("%s is a %s", name, field.Kind().String())
 		}
-		defaultVal := t.Tag.Get("default")
 		switch k := field.Kind(); k {
 		case reflect.Bool:
 			err = setBool(set, field, defaultVal, name, usage)
