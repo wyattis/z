@@ -15,7 +15,7 @@ func TestCamelToSnake(t *testing.T) {
 		{"AMix_of_types", "a_mix_of_types"},
 	}
 	for _, c := range cases {
-		res := CamelToSnake(c.In)
+		res := CamelToSnake(c.In, "_")
 		if c.Out != res {
 			t.Errorf("Expected %s, but got %s", c.Out, res)
 		}
@@ -32,7 +32,7 @@ func TestSnakeToCamel(t *testing.T) {
 		{"_ALeadingWord_test", "ALeadingWordTest"},
 	}
 	for _, c := range cases {
-		res := SnakeToCamel(c.In)
+		res := SnakeToCamel(c.In, "_")
 		if c.Out != res {
 			t.Errorf("Expected %s, but got %s", c.Out, res)
 		}

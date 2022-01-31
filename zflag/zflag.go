@@ -22,7 +22,7 @@ func ReflectStruct(set *flag.FlagSet, config interface{}) (err error) {
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
 		t := v.Type().Field(i)
-		name := zstring.CamelToSnake(t.Name)
+		name := zstring.CamelToSnake(t.Name, "-")
 		if tag := t.Tag.Get("flag"); tag != "" {
 			name = tag
 		}

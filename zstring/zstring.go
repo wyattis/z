@@ -74,7 +74,10 @@ func TrimPrefixes(val string, prefixes ...string) string {
 
 // Convert a camel string to snake case. Already snake cased strings aren't
 // modified.
-func CamelToSnake(val string) string {
+func CamelToSnake(val, separator string) string {
+	if separator == "" {
+		separator = "_"
+	}
 	changes := []int{}
 	for i := range val {
 		if val[i:i+1] != strings.ToLower(val[i:i+1]) || i == 0 {
@@ -87,14 +90,17 @@ func CamelToSnake(val string) string {
 		part := val[changes[i]:changes[i+1]]
 		parts = append(parts, strings.ToLower(part))
 	}
-	return strings.Join(parts, "_")
+	return strings.Join(parts, separator)
 }
 
 // Convert a snake cased string to camel case. Ignores strings that already have
 // camel casing.
-func SnakeToCamel(val string) (res string) {
-	val = CamelToSnake(val)
-	parts := strings.Split(val, "_")
+func SnakeToCamel(val, separator string) (res string) {
+	if separator == "" {
+		separator = "_"
+	}
+	val = CamelToSnake(val, separator)
+	parts := strings.Split(val, separator)
 	if len(parts) == 1 {
 		return val
 	}
