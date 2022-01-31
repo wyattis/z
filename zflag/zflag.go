@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 	"unsafe"
+
+	"github.com/wyattis/z/zstring"
 )
 
 // Use reflection infer options for a flag.FlagSet based on the types and tags
@@ -21,7 +22,7 @@ func ReflectStruct(set *flag.FlagSet, config interface{}) (err error) {
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
 		t := v.Type().Field(i)
-		name := strings.ToLower(t.Name)
+		name := zstring.CamelToSnake(t.Name)
 		if tag := t.Tag.Get("flag"); tag != "" {
 			name = tag
 		}
