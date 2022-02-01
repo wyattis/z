@@ -18,13 +18,27 @@ func (s *Set) Add(items ...string) {
 	}
 }
 
-func (s Set) Contains(items ...string) bool {
+func (s Set) Contains(item string) bool {
+  _, exists := s.items[item]
+	return exists
+}
+
+func (s Set) ContainsAll(items ...string) bool {
 	for _, item := range items {
 		if _, exists := s.items[item]; !exists {
 			return false
 		}
 	}
 	return true
+}
+
+func (s Set) ContainsAny(items ...string) bool {
+	for _, item := range items {
+		if _, exists := s.items[item]; exists {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *Set) Delete(items ...string) {
