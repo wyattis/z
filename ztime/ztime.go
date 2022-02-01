@@ -4,13 +4,6 @@ import (
 	"time"
 )
 
-const (
-	Day   time.Duration = time.Hour * 24
-	Week                = Day * 7
-	Month               = Day * 31
-	Year                = Day * 365
-)
-
 // Returns true if the given date falls on a weekday
 func IsWeekday(date time.Time) bool {
 	switch date.Weekday() {

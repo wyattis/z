@@ -2,22 +2,21 @@ package ztime
 
 import (
 	"testing"
-	"time"
 )
 
 type parseCase struct {
 	in  string
-	out time.Duration
+	out Duration
 }
 
 func TestParseDuration(t *testing.T) {
 	cases := []parseCase{
-		{"1h", time.Hour},
+		{"1h", Hour},
 		{"1d", Day},
 		{"1w", Week},
 		{"1M", Month},
 		{"1Y", Year},
-		{"1w2d5h", Week + 2*Day + 5*time.Hour},
+		{"1w2d5h", Week + 2*Day + 5*Hour},
 		{"3Y6d", 3*Year + 6*Day},
 		{"0Y", 0},
 	}

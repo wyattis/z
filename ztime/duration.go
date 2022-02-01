@@ -5,9 +5,45 @@ import (
 	"time"
 )
 
+type Duration time.Duration
+
+func (d Duration) String() string {
+	v := time.Duration(d)
+	return v.String()
+}
+
+func (d *Duration) UnmarshalJSON(val []byte) (err error) {
+	*d, err = ParseDuration(string(val))
+	return
+}
+
+func (d *Duration) UnmarshalYAML(unmarshal func(interface{}) error) (err error) {
+	var val string
+	if err = unmarshal(&val); err != nil {
+		return
+	}
+	*d, err = ParseDuration(val)
+	return
+}
+
 var (
 	errBad        = errors.New("bad value for field") // placeholder not passed to user
 	errLeadingInt = errors.New("time: bad [0-9]*")    // never printed
+)
+
+const (
+	Nanosecond  Duration = Duration(time.Nanosecond)
+	Microsecond          = Duration(time.Microsecond)
+	Millisecond          = Duration(time.Millisecond)
+	Second               = Duration(time.Second)
+	Minute               = Duration(time.Minute)
+	Hour                 = Duration(time.Hour)
+	Day                  = Duration(time.Hour) * 24
+	Week                 = Day * 7
+	Month                = Day * 31
+	Year                 = Day * 365
+	Decade               = Year * 10
+	Century              = Decade * 10
 )
 
 // ParseError describes a problem parsing a time string.
@@ -36,16 +72,16 @@ var unitMap = map[string]int64{
 	"s":  int64(time.Second),
 	"m":  int64(time.Minute),
 	"h":  int64(time.Hour),
-	"d":  int64(time.Hour * 24),
-	"w":  int64(time.Hour * 24 * 7),
-	"M":  int64(time.Hour * 24 * 31),
-	"Y":  int64(time.Hour * 24 * 365),
+	"d":  int64(Day),
+	"w":  int64(Week),
+	"M":  int64(Month),
+	"Y":  int64(Year),
 }
 
 // Extend version of ParseDuration. Source code is almost identical to
 // Supports day (d) and week (w) units as well as general month (M) and year (Y)
 // durations. Month is defined as 31 days and a year is 365 days.
-func ParseDuration(s string) (time.Duration, error) {
+func ParseDuration(s string) (Duration, error) {
 	orig := s
 	var d int64
 	neg := false
@@ -139,7 +175,7 @@ func ParseDuration(s string) (time.Duration, error) {
 	if neg {
 		d = -d
 	}
-	return time.Duration(d), nil
+	return Duration(d), nil
 }
 
 // leadingInt consumes the leading [0-9]* from s.
