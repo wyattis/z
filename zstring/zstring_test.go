@@ -13,6 +13,7 @@ func TestCamelToSnake(t *testing.T) {
 		{"onceUponATime", "once_upon_a_time"},
 		{"do_nothing", "do_nothing"},
 		{"AMix_of_types", "a_mix_of_types"},
+		{"", ""},
 	}
 	for _, c := range cases {
 		res := CamelToSnake(c.In, "_")
@@ -30,6 +31,7 @@ func TestSnakeToCamel(t *testing.T) {
 		{"AMix_of_types", "AMixOfTypes"},
 		{"a_test___whew", "ATestWhew"},
 		{"_ALeadingWord_test", "ALeadingWordTest"},
+		{"", ""},
 	}
 	for _, c := range cases {
 		res := SnakeToCamel(c.In, "_")
