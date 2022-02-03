@@ -7,6 +7,35 @@ import (
 	"io"
 )
 
+type multiCloser struct {
+	closers []io.Closer
+}
+
+func (m *multiCloser) Close() error {
+	return CloseAll(m.closers...)
+}
+
+func MultiCloser(closers ...io.Closer) io.Closer {
+	return &multiCloser{
+		closers: closers,
+	}
+}
+
+type CombineReaderCloser struct {
+	io.Reader
+	io.Closer
+}
+type ReaderToReadCloser struct {
+	io.Reader
+}
+
+func (r *ReaderToReadCloser) Close() error {
+	if c, ok := r.Reader.(io.Closer); ok {
+		return c.Close()
+	}
+	return nil
+}
+
 // Close multiple Closers returning an error if any of them produce one
 func CloseAll(files ...io.Closer) error {
 	for _, f := range files {

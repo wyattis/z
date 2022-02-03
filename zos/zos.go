@@ -13,6 +13,16 @@ func Exists(path string) bool {
 	return !errors.Is(err, os.ErrNotExist)
 }
 
+// Returns true if a path exists and is a directory. It still returns false even
+// if the path doesn't exist.
+func IsDir(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return info.IsDir()
+}
+
 // Create a file and use it inside a closure. Will automatically close the file
 // after the closure completes and remove the corrupt file if an error is thrown.
 func CreateWith(path string, handler FileHandler) (err error) {
