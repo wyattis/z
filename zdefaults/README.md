@@ -21,7 +21,7 @@ func main () {
 ```go
 type Config struct {
   Time          time.Time     `default:"2009-01-20"`
-  CustomTime    time.Time     `default:"random-20-05-21" format:"random-06-01-02"`
+  CustomTime    time.Time     `default:"random-20-05-21" time-format:"random-06-01-02"`
   CacheDuration time.Duration `default:"10s"`
 }
 

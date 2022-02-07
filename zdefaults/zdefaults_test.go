@@ -24,7 +24,7 @@ type simpleconf struct {
 	String     string        `default:"hello"`
 	Dur        time.Duration `default:"60s"`
 	Time       time.Time     `default:"2000-01-01"`
-	TimeCustom time.Time     `default:"Feb 4, 2008" format:"Jan _2, 2006"`
+	TimeCustom time.Time     `default:"Feb 4, 2008" time-format:"Jan _2, 2006"`
 }
 
 type sliceconf struct {

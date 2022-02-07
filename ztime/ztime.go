@@ -1,6 +1,7 @@
 package ztime
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -28,4 +29,37 @@ func IsWeekend(date time.Time) bool {
 		return false
 	}
 	return true
+}
+
+var timeFormats = []string{
+	time.Kitchen,
+	"15:04",
+	"15:04:05",
+	"15:04:05 MST",
+	"2006-01-02",
+	time.RFC3339,
+	time.RFC3339Nano,
+	time.RFC1123,
+	time.RFC1123Z,
+	time.RFC850,
+	time.RFC850,
+	time.RFC822Z,
+	time.RFC822,
+	time.RubyDate,
+	time.UnixDate,
+	time.ANSIC,
+}
+
+// Attempt to parse a time using all known formats. If formats are passed in, we
+// attempt to parse using those formats first. An error is thrown only if no
+// matching formats are found.
+func Parse(val string, formats ...string) (t time.Time, err error) {
+	formats = append(formats, timeFormats...)
+	for _, format := range formats {
+		if t, err = time.Parse(format, val); err == nil {
+			return
+		}
+	}
+	err = fmt.Errorf("failed to parse the time %s. Attempted %d formats. Please provide a format.", val, len(timeFormats))
+	return
 }
