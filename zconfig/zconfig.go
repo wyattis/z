@@ -2,6 +2,7 @@ package zconfig
 
 import (
 	"flag"
+	"os"
 
 	"github.com/wyattis/z/zdefaults"
 	"github.com/wyattis/z/zenv"
@@ -38,7 +39,7 @@ func (c *Configurer) Parse(val interface{}) (err error) {
 // Configure a struct using any command line flags, environment variables,
 // variables in .env and finally, values set using default tags
 func Auto() configOption {
-	opts := []configOption{Flag(), Env(".env"), Defaults()}
+	opts := []configOption{Flag(os.Args), Env(".env"), Defaults()}
 	return func(val interface{}) error {
 		for _, opt := range opts {
 			if err := opt(val); err != nil {
