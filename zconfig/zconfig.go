@@ -64,10 +64,13 @@ func EnvFile(paths ...string) configOption {
 }
 
 // Configure a struct using command line flags
-func Flag() configOption {
+func Flag(args []string) configOption {
 	return func(val interface{}) error {
 		set := flag.NewFlagSet("", flag.ExitOnError)
-		return zflag.Configure(set, val)
+		if err := zflag.Configure(set, val); err != nil {
+			return err
+		}
+		return set.Parse(args)
 	}
 }
 
