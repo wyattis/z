@@ -11,7 +11,7 @@ import (
 	"github.com/wyattis/z/ztime"
 )
 
-func SetDefaults(val interface{}) (err error) {
+func Set(val interface{}) (err error) {
 	if reflect.TypeOf(val).Kind() != reflect.Ptr {
 		return errors.New("value must be a pointer")
 	}

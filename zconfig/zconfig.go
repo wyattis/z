@@ -67,13 +67,13 @@ func EnvFile(paths ...string) configOption {
 func Flag() configOption {
 	return func(val interface{}) error {
 		set := flag.NewFlagSet("", flag.ExitOnError)
-		return zflag.ReflectStruct(set, val)
+		return zflag.Configure(set, val)
 	}
 }
 
 // Configure using default tags configured on the struct
 func Defaults() configOption {
 	return func(val interface{}) error {
-		return zdefaults.SetDefaults(val)
+		return zdefaults.Set(val)
 	}
 }

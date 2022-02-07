@@ -77,7 +77,7 @@ var structCases = [][2]structconf{
 func TestSimple(t *testing.T) {
 	for i, c := range simpleCases {
 		in := c[0]
-		if err := SetDefaults(&in); err != nil {
+		if err := Set(&in); err != nil {
 			t.Error(err)
 		}
 		if !reflect.DeepEqual(in, c[1]) {
@@ -91,7 +91,7 @@ func TestSimple(t *testing.T) {
 func TestArray(t *testing.T) {
 	for i, c := range sliceCases {
 		in := c[0]
-		if err := SetDefaults(&in); err != nil {
+		if err := Set(&in); err != nil {
 			t.Error(err)
 		}
 		if !reflect.DeepEqual(in, c[1]) {
@@ -105,7 +105,7 @@ func TestArray(t *testing.T) {
 func TestStruct(t *testing.T) {
 	for i, c := range structCases {
 		in := c[0]
-		if err := SetDefaults(&in); err != nil {
+		if err := Set(&in); err != nil {
 			t.Error(err)
 		}
 		if !reflect.DeepEqual(in, c[1]) {

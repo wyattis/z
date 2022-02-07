@@ -17,7 +17,7 @@ type FileServerConfig struct {
 func main() {
 	config := FileServerConfig{}
 	set := flag.NewFlagSet("", flag.ExitOnError)
-	if err := zflag.ReflectStruct(set, &config); err != nil {
+	if err := zflag.Configure(set, &config); err != nil {
 		panic(err)
 	}
 	set.Usage()

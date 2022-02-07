@@ -48,7 +48,7 @@ func (f *convSetter) String() string {
 
 // Use reflection infer options for a flag.FlagSet based on the types and tags
 // defined on a struct
-func ReflectStruct(set *flag.FlagSet, config interface{}) error {
+func Configure(set *flag.FlagSet, config interface{}) error {
 	if reflect.TypeOf(config).Kind() != reflect.Ptr {
 		return errors.New("config must be a pointer")
 	}
@@ -82,6 +82,7 @@ func recursiveSetFlags(set *flag.FlagSet, v reflect.Value, prefix string) (err e
 		if usage == "" {
 			usage = fmt.Sprintf("%s is a %s", name, field.Kind().String())
 		}
+		fmt.Println("name", name, "usage", usage)
 		if field.Type() == reflect.TypeOf(time.Time{}) {
 			res, err := ztime.Parse(defaultVal, t.Tag.Get("time-format"))
 			if err != nil {
