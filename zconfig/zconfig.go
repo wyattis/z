@@ -67,7 +67,7 @@ func EnvFile(paths ...string) configOption {
 func Flag() configOption {
 	return func(val interface{}) error {
 		set := flag.NewFlagSet("", flag.ExitOnError)
-		return zflag.ReflectStruct(set, nil)
+		return zflag.ReflectStruct(set, val)
 	}
 }
 
