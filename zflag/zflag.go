@@ -6,25 +6,63 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 	"unsafe"
 
+	"github.com/wyattis/z/zreflect"
 	"github.com/wyattis/z/zstring"
+	"github.com/wyattis/z/ztime"
 )
+
+type convSetter struct {
+	value *reflect.Value
+	field *reflect.StructField
+}
+
+func (f *convSetter) Set(val string) error {
+	k := f.value.Kind()
+	fmt.Println("convSetter.Set", val, f.value, f.field)
+	if f.value.Type() == reflect.TypeOf(time.Time{}) {
+		t, err := ztime.Parse(val, f.field.Tag.Get("time-format"))
+		if err != nil {
+			return err
+		}
+		f.value.Set(reflect.ValueOf(t))
+		return nil
+	} else if convert, exists := zreflect.ConvMap[k]; exists {
+		val, err := convert(val, *f.value, zreflect.ConvMap)
+		if err != nil {
+			return err
+		}
+		f.value.Set(val)
+		return nil
+	} else {
+		return errors.New("uknown type")
+	}
+}
+
+func (f *convSetter) String() string {
+	return (*f.value).String()
+}
 
 // Use reflection infer options for a flag.FlagSet based on the types and tags
 // defined on a struct
-func ReflectStruct(set *flag.FlagSet, config interface{}) (err error) {
+func ReflectStruct(set *flag.FlagSet, config interface{}) error {
 	if reflect.TypeOf(config).Kind() != reflect.Ptr {
 		return errors.New("config must be a pointer")
 	}
 	v := reflect.Indirect(reflect.ValueOf(config))
+	return recursiveSetFlags(set, v, "")
+}
+
+func recursiveSetFlags(set *flag.FlagSet, v reflect.Value, prefix string) (err error) {
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
 		t := v.Type().Field(i)
-		defaultVal := t.Tag.Get("default")
+		k := field.Kind()
 		var found bool
-		var name, usage string
+		var name, usage, defaultVal string
 		if tag := t.Tag.Get("flag"); tag != "" {
 			// using cut here to allow commas in the usage string at the end
 			name, defaultVal, found = zstring.Cut(tag, ",")
@@ -32,137 +70,45 @@ func ReflectStruct(set *flag.FlagSet, config interface{}) (err error) {
 				defaultVal, usage, found = zstring.Cut(defaultVal, ",")
 			}
 		}
+		if defaultVal == "" {
+			defaultVal = t.Tag.Get("default")
+		}
 		if name == "" {
 			name = zstring.CamelToSnake(t.Name, "-")
+		}
+		if prefix != "" {
+			name = strings.Join(append([]string{prefix}, strings.Split(name, "-")...), "-")
 		}
 		if usage == "" {
 			usage = fmt.Sprintf("%s is a %s", name, field.Kind().String())
 		}
-		switch k := field.Kind(); k {
-		case reflect.Bool:
-			err = setBool(set, field, defaultVal, name, usage)
-		case reflect.Int:
-			err = setInt(set, field, defaultVal, name, usage)
-		case reflect.Int64:
-			err = setInt64(set, field, defaultVal, name, usage)
-		case reflect.Uint:
-			err = setUint(set, field, defaultVal, name, usage)
-		case reflect.Uint64:
-			err = setUint64(set, field, defaultVal, name, usage)
-		case reflect.Float64:
-			err = setFloat64(set, field, defaultVal, name, usage)
-		case reflect.String:
-			err = setString(set, field, defaultVal, name, usage)
-		default:
-			return fmt.Errorf("type of %s is not implemented", k)
-		}
-		if err != nil {
-			return
-		}
-	}
-	return
-}
-
-func setBool(set *flag.FlagSet, field reflect.Value, defaultVal, name, usage string) (err error) {
-	defVal := false
-	if defaultVal != "" {
-		if defVal, err = strconv.ParseBool(defaultVal); err != nil {
-			return
-		}
-	}
-	p := (*bool)(unsafe.Pointer(field.Addr().Pointer()))
-	set.BoolVar(p, name, defVal, usage)
-	return
-}
-
-func setInt(set *flag.FlagSet, field reflect.Value, defaultVal, name, usage string) (err error) {
-	defVal := 0
-	if defaultVal != "" {
-		if i, err := strconv.ParseInt(defaultVal, 10, 64); err != nil {
-			return err
+		if field.Type() == reflect.TypeOf(time.Time{}) {
+			res, err := ztime.Parse(defaultVal, t.Tag.Get("time-format"))
+			if err != nil {
+				return err
+			}
+			if field.IsZero() {
+				field.Set(reflect.ValueOf(res))
+			}
+			set.Var(&convSetter{value: &field, field: &t}, name, usage)
+		} else if k == reflect.Struct {
+			if err = recursiveSetFlags(set, field, name); err != nil {
+				return
+			}
+		} else if k == reflect.Bool {
+			defVal := false
+			if defaultVal != "" {
+				if defVal, err = strconv.ParseBool(defaultVal); err != nil {
+					return
+				}
+			}
+			p := (*bool)(unsafe.Pointer(field.Addr().Pointer()))
+			set.BoolVar(p, name, defVal, usage)
+		} else if _, exists := zreflect.ConvMap[k]; exists {
+			set.Var(&convSetter{value: &field, field: &t}, name, usage)
 		} else {
-			defVal = int(i)
+			fmt.Println("skipping invalid type", field, k, v)
 		}
 	}
-	p := (*int)(unsafe.Pointer(field.Addr().Pointer()))
-	set.IntVar(p, name, defVal, usage)
-
-	return
-}
-
-func setUint(set *flag.FlagSet, field reflect.Value, defaultVal, name, usage string) (err error) {
-	var defVal uint
-	if defaultVal != "" {
-		if i, err := strconv.ParseUint(defaultVal, 10, 64); err != nil {
-			return err
-		} else {
-			defVal = uint(i)
-		}
-	}
-	p := (*uint)(unsafe.Pointer(field.Addr().Pointer()))
-	set.UintVar(p, name, defVal, usage)
-	return
-}
-
-func setInt64(set *flag.FlagSet, field reflect.Value, defaultVal, name, usage string) (err error) {
-	if field.Type().String() == "time.Duration" {
-		return setDur(set, field, defaultVal, name, usage)
-	}
-	var defVal int64
-	if defaultVal != "" {
-		if i, err := strconv.ParseInt(defaultVal, 10, 64); err != nil {
-			return err
-		} else {
-			defVal = i
-		}
-	}
-	p := (*int64)(unsafe.Pointer(field.Addr().Pointer()))
-	set.Int64Var(p, name, defVal, usage)
-	return
-}
-
-func setDur(set *flag.FlagSet, field reflect.Value, defaultVal, name, usage string) (err error) {
-	var defVal time.Duration
-	if defaultVal != "" {
-		if defVal, err = time.ParseDuration(defaultVal); err != nil {
-			return err
-		}
-	}
-	p := (*time.Duration)(unsafe.Pointer(field.Addr().Pointer()))
-	set.DurationVar(p, name, defVal, usage)
-	return
-}
-
-func setUint64(set *flag.FlagSet, field reflect.Value, defaultVal, name, usage string) (err error) {
-	var defVal uint64
-	if defaultVal != "" {
-		if i, err := strconv.ParseUint(defaultVal, 10, 64); err != nil {
-			return err
-		} else {
-			defVal = i
-		}
-	}
-	p := (*uint64)(unsafe.Pointer(field.Addr().Pointer()))
-	set.Uint64Var(p, name, defVal, usage)
-	return
-}
-
-func setString(set *flag.FlagSet, field reflect.Value, defaultVal, name, usage string) (err error) {
-	p := (*string)(unsafe.Pointer(field.Addr().Pointer()))
-	set.StringVar(p, name, defaultVal, usage)
-	return
-}
-
-func setFloat64(set *flag.FlagSet, field reflect.Value, defaultVal, name, usage string) (err error) {
-	var defVal float64
-	if defaultVal != "" {
-		if i, err := strconv.ParseFloat(defaultVal, 10); err != nil {
-			return err
-		} else {
-			defVal = i
-		}
-	}
-	p := (*float64)(unsafe.Pointer(field.Addr().Pointer()))
-	set.Float64Var(p, name, defVal, usage)
-	return
+	return nil
 }
