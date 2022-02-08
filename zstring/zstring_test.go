@@ -16,7 +16,7 @@ func TestCamelToSnake(t *testing.T) {
 		{"", ""},
 	}
 	for _, c := range cases {
-		res := CamelToSnake(c.In, "_")
+		res := CamelToSnake(c.In, "_", 0)
 		if c.Out != res {
 			t.Errorf("Expected %s, but got %s", c.Out, res)
 		}
@@ -34,7 +34,7 @@ func TestSnakeToCamel(t *testing.T) {
 		{"", ""},
 	}
 	for _, c := range cases {
-		res := SnakeToCamel(c.In, "_")
+		res := SnakeToCamel(c.In, "_", 0)
 		if c.Out != res {
 			t.Errorf("Expected %s, but got %s", c.Out, res)
 		}

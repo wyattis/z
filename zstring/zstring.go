@@ -72,16 +72,29 @@ func TrimPrefixes(val string, prefixes ...string) string {
 	return val
 }
 
+// Determines if all characters in a string are uppercase
+func IsUppercase(val string) bool {
+	return strings.ToUpper(val) == val
+}
+
+// Determines if all characters in a string are lowercase
+func IsLowercase(val string) bool {
+	return strings.ToLower(val) == val
+}
+
 // Convert a camel string to snake case. Already snake cased strings aren't
 // modified.
-func CamelToSnake(val, separator string) string {
+func CamelToSnake(val, separator string, minWordSize int) string {
 	if separator == "" {
 		separator = "_"
 	}
 	changes := []int{}
+	wordSize := 0
 	for i := range val {
-		if val[i:i+1] != strings.ToLower(val[i:i+1]) || i == 0 {
+		wordSize++
+		if i == 0 || (val[i:i+1] != strings.ToLower(val[i:i+1]) && wordSize > minWordSize) {
 			changes = append(changes, i)
+			wordSize = 0
 		}
 	}
 	changes = append(changes, len(val))
@@ -95,11 +108,11 @@ func CamelToSnake(val, separator string) string {
 
 // Convert a snake cased string to camel case. Ignores strings that already have
 // camel casing.
-func SnakeToCamel(val, separator string) (res string) {
+func SnakeToCamel(val, separator string, minWordSize int) (res string) {
 	if separator == "" {
 		separator = "_"
 	}
-	val = CamelToSnake(val, separator)
+	val = CamelToSnake(val, separator, minWordSize)
 	parts := strings.Split(val, separator)
 	if len(parts) == 1 {
 		return val

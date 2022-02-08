@@ -74,7 +74,7 @@ func recursiveSetFlags(set *flag.FlagSet, v reflect.Value, prefix string) (err e
 			defaultVal = t.Tag.Get("default")
 		}
 		if name == "" {
-			name = zstring.CamelToSnake(t.Name, "-")
+			name = zstring.CamelToSnake(t.Name, "-", 1)
 		}
 		if prefix != "" {
 			name = strings.Join(append([]string{prefix}, strings.Split(name, "-")...), "-")

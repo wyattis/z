@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -84,7 +85,11 @@ func SetMap(val reflect.Value, env EnvMap) (err error) {
 			k := field.Kind()
 			name := t.Tag.Get("env")
 			if name == "" {
-				name = t.Name
+				if !zstring.IsUppercase(t.Name) {
+					name = strings.ToUpper(zstring.CamelToSnake(t.Name, "_", 1))
+				} else {
+					name = t.Name
+				}
 			}
 			if val, exists := env[name]; exists {
 				if field.Type() == reflect.TypeOf(time.Time{}) {
