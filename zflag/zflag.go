@@ -22,7 +22,6 @@ type convSetter struct {
 
 func (f *convSetter) Set(val string) error {
 	k := f.value.Kind()
-	fmt.Println("convSetter.Set", val, f.value, f.field)
 	if f.value.Type() == reflect.TypeOf(time.Time{}) {
 		t, err := ztime.Parse(val, f.field.Tag.Get("time-format"))
 		if err != nil {
@@ -43,6 +42,9 @@ func (f *convSetter) Set(val string) error {
 }
 
 func (f *convSetter) String() string {
+	if f.value == nil {
+		return "<nil>"
+	}
 	return (*f.value).String()
 }
 
@@ -52,8 +54,7 @@ func Configure(set *flag.FlagSet, config interface{}) error {
 	if reflect.TypeOf(config).Kind() != reflect.Ptr {
 		return errors.New("config must be a pointer")
 	}
-	v := reflect.Indirect(reflect.ValueOf(config))
-	return recursiveSetFlags(set, v, "")
+	return recursiveSetFlags(set, reflect.Indirect(reflect.ValueOf(config)), "")
 }
 
 func recursiveSetFlags(set *flag.FlagSet, v reflect.Value, prefix string) (err error) {
@@ -77,12 +78,13 @@ func recursiveSetFlags(set *flag.FlagSet, v reflect.Value, prefix string) (err e
 			name = zstring.CamelToSnake(t.Name, "-", 1)
 		}
 		if prefix != "" {
-			name = strings.Join(append([]string{prefix}, strings.Split(name, "-")...), "-")
+			name = strings.Join([]string{prefix, name}, "-")
+			// name = strings.Join(append([]string{prefix}, strings.Split(name, "-")...), "-")
 		}
+		fmt.Println(t.Name, name)
 		if usage == "" {
 			usage = fmt.Sprintf("%s is a %s", name, field.Kind().String())
 		}
-		fmt.Println("name", name, "usage", usage)
 		if field.Type() == reflect.TypeOf(time.Time{}) {
 			res, err := ztime.Parse(defaultVal, t.Tag.Get("time-format"))
 			if err != nil {
@@ -105,7 +107,16 @@ func recursiveSetFlags(set *flag.FlagSet, v reflect.Value, prefix string) (err e
 			}
 			p := (*bool)(unsafe.Pointer(field.Addr().Pointer()))
 			set.BoolVar(p, name, defVal, usage)
-		} else if _, exists := zreflect.ConvMap[k]; exists {
+		} else if conv, exists := zreflect.ConvMap[k]; exists {
+			// set the default value if one exists
+			if defaultVal != "" {
+				val, err := conv(defaultVal, field, zreflect.ConvMap)
+				if err != nil {
+					fmt.Println(err)
+					return err
+				}
+				field.Set(val)
+			}
 			set.Var(&convSetter{value: &field, field: &t}, name, usage)
 		} else {
 			fmt.Println("skipping invalid type", field, k, v)

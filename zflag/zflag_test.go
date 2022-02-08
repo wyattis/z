@@ -39,7 +39,8 @@ func TestReflectBase(t *testing.T) {
 		if err := Configure(set, &c.input); err != nil {
 			t.Error(err)
 		}
-		if err := set.Parse(strings.Split(c.args, " ")); err != nil {
+		args := strings.Split(c.args, " ")
+		if err := set.Parse(args); err != nil {
 			t.Error(err)
 		}
 		if !reflect.DeepEqual(c.input, c.expected) {

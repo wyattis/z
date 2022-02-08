@@ -2,6 +2,7 @@ package zenv
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"reflect"
 	"strings"
@@ -34,7 +35,7 @@ func Set(val interface{}, paths ...string) error {
 		return err
 	}
 	mergeEnv(&env, filesEnv)
-	return SetMap(reflect.Indirect(reflect.ValueOf(val)), env)
+	return SetMap(reflect.Indirect(reflect.ValueOf(val)), env, "")
 }
 
 // Set non-zero values on a struct using reflect to parse values from .env files.
@@ -47,7 +48,7 @@ func SetFiles(val interface{}, paths ...string) error {
 	if err != nil {
 		return err
 	}
-	return SetMap(reflect.Indirect(reflect.ValueOf(val)), env)
+	return SetMap(reflect.Indirect(reflect.ValueOf(val)), env, "")
 }
 
 // Parse multiple env files and merge the results into a single map. Existing
@@ -77,7 +78,7 @@ func ParseEnvFile(path string) (EnvMap, error) {
 }
 
 // Set non-zero values on a struct using reflect to get values from a map
-func SetMap(val reflect.Value, env EnvMap) (err error) {
+func SetMap(val reflect.Value, env EnvMap, prefix string) (err error) {
 	for i := 0; i < val.NumField(); i++ {
 		field := val.Field(i)
 		if field.IsZero() {
@@ -91,23 +92,28 @@ func SetMap(val reflect.Value, env EnvMap) (err error) {
 					name = t.Name
 				}
 			}
-			if val, exists := env[name]; exists {
+			if prefix != "" {
+				name = strings.Join([]string{prefix, name}, "_")
+			}
+			if k == reflect.Struct {
+				if err = SetMap(field, env, name); err != nil {
+					return
+				}
+			} else if val, exists := env[name]; exists {
 				if field.Type() == reflect.TypeOf(time.Time{}) {
 					t, err := ztime.Parse(val, t.Tag.Get("time-format"))
 					if err != nil {
 						return err
 					}
 					field.Set(reflect.ValueOf(t))
-				} else if k == reflect.Struct {
-					if err = SetMap(field, env); err != nil {
-						return
-					}
 				} else if converter, exists := zreflect.ConvMap[k]; exists {
 					rVal, err := converter(val, field, zreflect.ConvMap)
 					if err != nil {
 						return err
 					}
 					field.Set(rVal)
+				} else {
+					return fmt.Errorf("unknown type %s %s", name, k)
 				}
 			}
 		}
