@@ -95,6 +95,7 @@ func SetMap(val reflect.Value, env EnvMap, prefix string) (err error) {
 			if prefix != "" {
 				name = strings.Join([]string{prefix, name}, "_")
 			}
+			fmt.Println("zenv.SetMap", t.Name, name)
 			if k == reflect.Struct {
 				if err = SetMap(field, env, name); err != nil {
 					return
