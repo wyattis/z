@@ -148,11 +148,13 @@ func (m *Migrator) up(tx zsql.Tx, migrations []migration) (err error) {
 		return
 	}
 	qInsert := fmt.Sprintf("INSERT INTO %s (file, name, md5, created_at) VALUES (?, ?, ?, ?)", m.config.Table)
-	for _, m := range migrations {
-		if _, err = tx.Exec(m.SQL); err != nil {
-			return
+	for _, mig := range migrations {
+		fmt.Println(mig.SQL)
+		if _, err := tx.Exec(mig.SQL); err != nil {
+			return fmt.Errorf("Error found in %s\n %w", mig.File, m.Driver.ExpandError(err))
 		}
-		if _, err = tx.Exec(qInsert, m.File, m.Name, m.Md5, time.Now()); err != nil {
+		if _, err = tx.Exec(qInsert, mig.File, mig.Name, mig.Md5, time.Now()); err != nil {
+			err = m.Driver.ExpandError(err)
 			return
 		}
 	}
@@ -161,11 +163,12 @@ func (m *Migrator) up(tx zsql.Tx, migrations []migration) (err error) {
 
 func (m *Migrator) down(tx zsql.Tx, migrations []migration) (err error) {
 	qDelete := fmt.Sprintf("DELETE FROM %s where id=?", m.config.Table)
-	for _, m := range migrations {
-		if _, err = tx.Exec(m.SQL); err != nil {
+	for _, mig := range migrations {
+		if _, err = tx.Exec(mig.SQL); err != nil {
+			err = m.Driver.ExpandError(err)
 			return
 		}
-		if _, err = tx.Exec(qDelete, m.Id); err != nil {
+		if _, err = tx.Exec(qDelete, mig.Id); err != nil {
 			return
 		}
 	}
@@ -239,6 +242,7 @@ func (m *Migrator) getExisting() (res []migration, err error) {
 	q := fmt.Sprintf("SELECT id, file, name, md5, created_at FROM %s ORDER BY id ASC", m.config.Table)
 	rows, err := m.db.Query(q)
 	if err != nil {
+		err = m.Driver.ExpandError(err)
 		return
 	}
 	for rows.Next() {

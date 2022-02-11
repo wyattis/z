@@ -181,10 +181,7 @@ func Fill (slice []uint, val uint) []uint {
 // supplied offset
 func Remove(slice []uint, offset int, values ...uint) (res []uint) {
   for i := offset; i < len(slice); i++ {
-    for _, val := range values {
-      if slice[i] == val {
-        break
-      }
+    if !Contains(values, slice[i]) {
       res = append(res, slice[i])
     }
   }

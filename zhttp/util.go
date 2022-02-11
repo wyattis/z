@@ -1,10 +1,14 @@
 package zhttp
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/mitchellh/mapstructure"
+	"github.com/wyattis/z/zstring"
 )
 
 var (
@@ -56,4 +60,29 @@ func parseRange(header http.Header) (r Range, err error) {
 		}
 	}
 	return
+}
+
+// Decode the body into a struct using the Content-Type header
+func DecodeRequestBody(dest interface{}, r *http.Request) error {
+	fullType := r.Header.Get("Content-Type")
+	cType, _, _ := zstring.Cut(fullType, ";")
+	switch cType {
+	case "text/json":
+		fallthrough
+	case "application/json":
+		dec := json.NewDecoder(r.Body)
+		return dec.Decode(dest)
+	default:
+		return mapstructure.Decode(r.Form, dest)
+	}
+}
+
+// Encode the body as json
+func EncodeResponseJson(source interface{}, w http.ResponseWriter, status int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(source); err != nil {
+		http.Error(w, err.Error(), 500)
+	}
 }

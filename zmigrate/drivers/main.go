@@ -10,6 +10,7 @@ type Driver interface {
 	Matches(zsql.DB) bool
 	GetSchema(zsql.DB) (Schema, error)
 	IsNoTableErr(error) bool
+	ExpandError(error) error
 }
 
 type Schema []Table

@@ -1,6 +1,7 @@
 package drivers
 
 import (
+	"fmt"
 	"strings"
 
 	sqlite3 "github.com/mattn/go-sqlite3"
@@ -31,6 +32,11 @@ func (d Sqlite3Driver) GetSchema(db zsql.DB) (schema Schema, err error) {
 		schema = append(schema, table)
 	}
 	return
+}
+
+func (d Sqlite3Driver) ExpandError(err error) error {
+	sqerr, _ := err.(sqlite3.Error)
+	return fmt.Errorf(sqerr.ExtendedCode.Error())
 }
 
 func init() {

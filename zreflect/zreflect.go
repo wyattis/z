@@ -8,6 +8,24 @@ import (
 	"time"
 )
 
+// Get the names of each field in a struct
+func FieldNames(val interface{}, tags ...string) (res []string) {
+	v := reflect.ValueOf(val)
+	for i := 0; i < v.NumField(); i++ {
+		t := v.Type().Field(i)
+		name := t.Name
+		for _, tag := range tags {
+			candidate := t.Tag.Get(tag)
+			if candidate != "" {
+				name = candidate
+				break
+			}
+		}
+		res = append(res, name)
+	}
+	return
+}
+
 type TypeConv func(val string, field reflect.Value, m ConversionMap) (reflect.Value, error)
 type ConversionMap map[reflect.Kind]TypeConv
 

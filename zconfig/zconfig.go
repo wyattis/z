@@ -53,14 +53,14 @@ func Auto() configOption {
 // Configure a struct using values defined in the environment and .env files
 func Env(paths ...string) configOption {
 	return func(val interface{}) error {
-		return zenv.Set(val, paths...)
+		return zenv.Set(val, &zenv.EnvOptions{Overwrite: false}, paths...)
 	}
 }
 
 // Configure a struct using values from .env files
-func EnvFile(paths ...string) configOption {
+func EnvFiles(paths ...string) configOption {
 	return func(val interface{}) error {
-		return zenv.SetFiles(val, paths...)
+		return zenv.SetFiles(val, &zenv.EnvOptions{Overwrite: false}, paths...)
 	}
 }
 
@@ -68,7 +68,7 @@ func EnvFile(paths ...string) configOption {
 func Flag(args []string) configOption {
 	return func(val interface{}) error {
 		set := flag.NewFlagSet("", flag.ContinueOnError)
-		if err := zflag.Configure(set, val); err != nil {
+		if err := zflag.Configure(set, val, &zflag.FlagOptions{Overwrite: false}); err != nil {
 			return err
 		}
 		return set.Parse(args)

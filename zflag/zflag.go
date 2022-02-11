@@ -48,16 +48,23 @@ func (f *convSetter) String() string {
 	return (*f.value).String()
 }
 
+type FlagOptions struct {
+	Overwrite bool
+}
+
 // Use reflection infer options for a flag.FlagSet based on the types and tags
 // defined on a struct
-func Configure(set *flag.FlagSet, config interface{}) error {
+func Configure(set *flag.FlagSet, config interface{}, opts *FlagOptions) error {
 	if reflect.TypeOf(config).Kind() != reflect.Ptr {
 		return errors.New("config must be a pointer")
 	}
-	return recursiveSetFlags(set, reflect.Indirect(reflect.ValueOf(config)), "")
+	if opts == nil {
+		opts = &FlagOptions{}
+	}
+	return recursiveSetFlags(set, reflect.Indirect(reflect.ValueOf(config)), "", *opts)
 }
 
-func recursiveSetFlags(set *flag.FlagSet, v reflect.Value, prefix string) (err error) {
+func recursiveSetFlags(set *flag.FlagSet, v reflect.Value, prefix string, opts FlagOptions) (err error) {
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
 		t := v.Type().Field(i)
@@ -90,12 +97,12 @@ func recursiveSetFlags(set *flag.FlagSet, v reflect.Value, prefix string) (err e
 			if err != nil {
 				return err
 			}
-			if field.IsZero() {
+			if field.IsZero() || opts.Overwrite {
 				field.Set(reflect.ValueOf(res))
 			}
 			set.Var(&convSetter{value: &field, field: &t}, name, usage)
 		} else if k == reflect.Struct {
-			if err = recursiveSetFlags(set, field, name); err != nil {
+			if err = recursiveSetFlags(set, field, name, opts); err != nil {
 				return
 			}
 		} else if k == reflect.Bool {
@@ -115,7 +122,9 @@ func recursiveSetFlags(set *flag.FlagSet, v reflect.Value, prefix string) (err e
 					fmt.Println(err)
 					return err
 				}
-				field.Set(val)
+				if field.IsZero() || opts.Overwrite {
+					field.Set(val)
+				}
 			}
 			set.Var(&convSetter{value: &field, field: &t}, name, usage)
 		} else {
