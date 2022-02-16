@@ -78,11 +78,11 @@ func DecodeRequestBody(dest interface{}, r *http.Request) error {
 }
 
 // Encode the body as json
-func EncodeResponseJson(source interface{}, w http.ResponseWriter, status int) {
+func Json(w http.ResponseWriter, value interface{}, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	enc := json.NewEncoder(w)
-	if err := enc.Encode(source); err != nil {
+	if err := enc.Encode(value); err != nil {
 		http.Error(w, err.Error(), 500)
 	}
 }
