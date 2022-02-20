@@ -10,5 +10,6 @@ require (
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-sqlite3 v1.14.10
 	github.com/mitchellh/mapstructure v1.4.3
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	golang.org/x/text v0.3.7
 )
