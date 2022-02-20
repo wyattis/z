@@ -1,6 +1,9 @@
 package zhash
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 func encodeWithSalt(hash, salt []byte) []byte {
 	saltLen := uint8(len(salt))
@@ -26,12 +29,17 @@ func splitHashAndSalt(raw []byte) (hash, salt []byte) {
 }
 
 func encodeWithAlg(alg Alg, hash []byte) []byte {
-	res := make([]byte, len(hash)+1)
+	res := make([]byte, len(hash)+2)
 	res[0] = alg
-	copy(res[1:], hash)
+	res[1] = byte(0x3a)
+	copy(res[2:], hash)
 	return res
 }
 
-func splitHashAndAlg(raw []byte) (hash []byte, alg Alg) {
-	return hash[1:], hash[0]
+func splitHashAndAlg(raw []byte) (hash []byte, alg Alg, err error) {
+	if raw[1] != byte(0x3a) {
+		err = errors.New("invalid hash encoding")
+		return
+	}
+	return raw[2:], raw[0], nil
 }

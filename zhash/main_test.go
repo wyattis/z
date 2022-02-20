@@ -1,11 +1,43 @@
 package zhash
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 var passwords = []string{"example", "two", "12039849012341234123412341234"}
 var fails = []string{"one", "fiver", "q", ""}
 
-func TestHashAndCompare(t *testing.T) {
+func TestExample(t *testing.T) {
+	pass := []byte("example")
+	hash, err := Hash(pass)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(hash)
+	ok, err := Compare(hash, pass)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(ok)
+}
+
+func TestMainHashAndCompare(t *testing.T) {
+	for _, pass := range passwords {
+		hash, err := Hash([]byte(pass))
+		if err != nil {
+			t.Error(err)
+		}
+		equal, err := Compare(hash, []byte(pass))
+		if err != nil {
+			t.Error(err)
+		}
+		if !equal {
+			t.Errorf("Expected '%s' to hash correctly", pass)
+		}
+	}
+}
+func TestAllHashAndCompare(t *testing.T) {
 	for _, alg := range available {
 		for _, pass := range passwords {
 			hash, err := alg.Hash([]byte(pass))
@@ -23,7 +55,7 @@ func TestHashAndCompare(t *testing.T) {
 	}
 }
 
-func TestHashAndFail(t *testing.T) {
+func TestAllHashAndFail(t *testing.T) {
 	for _, alg := range available {
 		for _, pass := range passwords {
 			hash, err := alg.Hash([]byte(pass))
