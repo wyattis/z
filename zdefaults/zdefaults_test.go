@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/wyattis/z/zsize"
 )
 
 type simpleconf struct {
@@ -25,6 +27,7 @@ type simpleconf struct {
 	Dur        time.Duration `default:"60s"`
 	Time       time.Time     `default:"2000-01-01"`
 	TimeCustom time.Time     `default:"Feb 4, 2008" time-format:"Jan _2, 2006"`
+	Size       zsize.Size    `default:"10mb"`
 }
 
 type sliceconf struct {
@@ -45,11 +48,11 @@ var t2, _ = time.Parse("2006-01-02", "2008-02-04")
 var simpleCases = [][2]simpleconf{
 	{
 		simpleconf{},
-		simpleconf{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, true, true, "hello", time.Minute, t1, t2},
+		simpleconf{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, true, true, "hello", time.Minute, t1, t2, 10 * zsize.Megabyte},
 	},
 	{
 		simpleconf{Int: -1, Int8: -1},
-		simpleconf{-1, -1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, true, true, "hello", time.Minute, t1, t2},
+		simpleconf{-1, -1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, true, true, "hello", time.Minute, t1, t2, 10 * zsize.Megabyte},
 	},
 }
 
@@ -69,7 +72,7 @@ var structCases = [][2]structconf{
 		{},
 		{
 			SliceConf:  sliceconf{[]string{"hello", "world"}, []int{1, 2, 3}, []int8{1, 2, 3}, []float32{10.1, 1234.1234, 56}},
-			SimpleConf: simpleconf{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, true, true, "hello", time.Minute, t1, t2},
+			SimpleConf: simpleconf{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, true, true, "hello", time.Minute, t1, t2, 10 * zsize.Megabyte},
 		},
 	},
 }

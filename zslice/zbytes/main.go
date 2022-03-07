@@ -132,6 +132,17 @@ func CutAny(val []byte, seperators ...byte) (left, right []byte, found bool) {
 	return
 }
 
+// Cut the slice at the specified index
+func CutAt(val []byte, index int) (left, right []byte) {
+  if index < 0 {
+    index += len(val)
+  }
+  if len(val) > index {
+    return val[:index], val[index:]
+  }
+  return val, nil
+}
+
 // Split the slice into one or more slices separated by the separator
 func Split(slice []byte, separator byte) (parts [][]byte) {
 	prevI := 0

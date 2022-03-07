@@ -2,6 +2,7 @@ package ztime
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -61,5 +62,23 @@ func Parse(val string, formats ...string) (t time.Time, err error) {
 		}
 	}
 	err = fmt.Errorf("failed to parse the time %s. Attempted %d formats. Please provide a format.", val, len(timeFormats))
+	return
+}
+
+// The same as time.Unix, but the arguments are strings
+func ParseUnix(seconds string, nanos string) (t time.Time, err error) {
+	s, err := strconv.ParseInt(seconds, 10, 64)
+	if err != nil {
+		return
+	}
+	var n int64
+	if nanos != "" {
+		n, err = strconv.ParseInt(nanos, 10, 64)
+		if err != nil {
+			return
+		}
+	}
+
+	t = time.Unix(s, n)
 	return
 }

@@ -77,3 +77,31 @@ func ReadersMatch(r1 io.Reader, r2 io.Reader, bufSize int) error {
 	}
 	return nil
 }
+
+type headRecorder struct {
+	io.Writer
+	Max uint
+
+	buf bytes.Buffer
+}
+
+func HeadRecorder(writer io.Writer, max uint) *headRecorder {
+	return &headRecorder{
+		Writer: writer,
+		Max:    max,
+		buf:    *bytes.NewBuffer(nil),
+	}
+}
+
+func (r *headRecorder) Bytes() []byte {
+	return r.buf.Bytes()
+}
+
+func (r *headRecorder) Write(b []byte) (n int, err error) {
+	if r.buf.Len()*8 < int(r.Max) {
+		if n, err = r.buf.Write(b); err != nil {
+			return
+		}
+	}
+	return r.Writer.Write(b)
+}

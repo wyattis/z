@@ -31,7 +31,7 @@ var defaultConfig = EnvOptions{
 // If a file doesn't exist it will be skipped.
 func Set(val interface{}, config *EnvOptions, paths ...string) error {
 	if reflect.TypeOf(val).Kind() != reflect.Ptr {
-		return errors.New("value must be a pointer")
+		return errors.New("zenv value must be a pointer")
 	}
 	if config == nil {
 		config = &defaultConfig
@@ -53,7 +53,7 @@ func Set(val interface{}, config *EnvOptions, paths ...string) error {
 // This method has the same behavior as Set, but doesn't use os.Environ() at all.
 func SetFiles(val interface{}, config *EnvOptions, paths ...string) error {
 	if reflect.TypeOf(val).Kind() != reflect.Ptr {
-		return errors.New("value must be a pointer")
+		return errors.New("zenv value must be a pointer")
 	}
 	env, err := ParseFiles(paths...)
 	if err != nil {

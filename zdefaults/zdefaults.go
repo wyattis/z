@@ -11,9 +11,14 @@ import (
 	"github.com/wyattis/z/ztime"
 )
 
+type Settable interface {
+	Set(val string) error
+	String() string
+}
+
 func Set(val interface{}) (err error) {
 	if reflect.TypeOf(val).Kind() != reflect.Ptr {
-		return errors.New("value must be a pointer")
+		return errors.New("zdefaults value must be a pointer")
 	}
 	return setDefaultsRecursive(reflect.Indirect(reflect.ValueOf(val)))
 }
@@ -24,6 +29,18 @@ func setDefaultsRecursive(val reflect.Value) (err error) {
 		t := val.Type().Field(i)
 		k := field.Kind()
 		defaultValue := t.Tag.Get("default")
+		if field.CanInterface() {
+			f := field
+			if f.CanAddr() {
+				f = f.Addr()
+			}
+			if set, ok := f.Interface().(Settable); ok {
+				if err = set.Set(defaultValue); err != nil {
+					return
+				}
+				break
+			}
+		}
 		if field.Type() == reflect.TypeOf(time.Time{}) {
 			t, err := parseTime(defaultValue, t.Tag.Get("time-format"))
 			if err != nil {

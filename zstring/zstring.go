@@ -48,6 +48,17 @@ func CutOutAny(val string, leftBounds []string, rightBounds []string) (remaining
 	return
 }
 
+// Cut the string at the specified index
+func CutAt(val string, index int) (left, right string) {
+	if index < 0 {
+		index += len(val)
+	}
+	if len(val) > index {
+		return val[:index], val[index:]
+	}
+	return val, ""
+}
+
 // Like ReplaceAll, but for replacing several sequences at once
 func ReplaceManyWithOne(val string, needles []string, replacement string) string {
 	for _, needle := range needles {

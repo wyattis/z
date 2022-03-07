@@ -3,11 +3,15 @@ package zhttp
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/wyattis/z/zslice/zstrings"
 	"github.com/wyattis/z/zstring"
 )
 
@@ -84,5 +88,72 @@ func Json(w http.ResponseWriter, value interface{}, status int) {
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(value); err != nil {
 		http.Error(w, err.Error(), 500)
+	}
+}
+
+// Encode StatusBadRequest with optional msg
+func BadRequest(w http.ResponseWriter, msg string) {
+	if msg == "" {
+		msg = http.StatusText(http.StatusBadRequest)
+	}
+	http.Error(w, msg, http.StatusBadRequest)
+}
+
+// Encode StatusInternalServerError with optional msg
+func InternalServerError(w http.ResponseWriter, msg string) {
+	if msg == "" {
+		msg = http.StatusText(http.StatusInternalServerError)
+	}
+	http.Error(w, msg, http.StatusInternalServerError)
+}
+
+type MultipartHandler = func(w http.ResponseWriter, r *http.Request, file multipart.File, header *multipart.FileHeader) error
+
+// Process multipart upload
+func MultipartUpload(maxSize int64, allowedTypes []string, handler MultipartHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.ContentLength > maxSize {
+			BadRequest(w, "exceeded max size")
+			return
+		}
+		r.Body = http.MaxBytesReader(w, r.Body, maxSize)
+		if err := r.ParseMultipartForm(maxSize); err != nil {
+			BadRequest(w, "exceeded max size")
+			return
+		}
+
+		file, fileHeader, err := r.FormFile("file")
+		if err != nil {
+			BadRequest(w, err.Error())
+			return
+		}
+
+		defer file.Close()
+
+		buff := make([]byte, 512)
+		_, err = file.Read(buff)
+		if err != nil {
+			InternalServerError(w, err.Error())
+			return
+		}
+
+		// TODO: any way to make this more reliable?
+		// filetype := http.DetectContentType(buff)
+		filetype := fileHeader.Header.Get("Content-Type")
+		if !zstrings.Contains(allowedTypes, filetype) {
+			fmt.Println(allowedTypes, filetype)
+			BadRequest(w, "the provided file format is not allowed")
+			return
+		}
+
+		if _, err = file.Seek(0, io.SeekStart); err != nil {
+			InternalServerError(w, err.Error())
+			return
+		}
+
+		if err = handler(w, r, file, fileHeader); err != nil {
+			InternalServerError(w, err.Error())
+			return
+		}
 	}
 }

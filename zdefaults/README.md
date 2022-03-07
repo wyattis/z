@@ -1,6 +1,5 @@
 # zdefaults
-Set default values for a struct using tags. Will ignore any values that aren't at their zero value.
-Supports parsing time.Duration and time.Time.
+Set default values for a struct using tags. Will ignore any values that aren't already at their zero value. Supports parsing time.Duration and time.Time as well as custom implementations of the `Settable` interface.
 
 ## Example
 Set defaults for an example file server configuration.

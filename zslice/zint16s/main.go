@@ -132,6 +132,17 @@ func CutAny(val []int16, seperators ...int16) (left, right []int16, found bool) 
 	return
 }
 
+// Cut the slice at the specified index
+func CutAt(val []int16, index int) (left, right []int16) {
+  if index < 0 {
+    index += len(val)
+  }
+  if len(val) > index {
+    return val[:index], val[index:]
+  }
+  return val, nil
+}
+
 // Split the slice into one or more slices separated by the separator
 func Split(slice []int16, separator int16) (parts [][]int16) {
 	prevI := 0

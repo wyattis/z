@@ -40,3 +40,22 @@ func TestSnakeToCamel(t *testing.T) {
 		}
 	}
 }
+
+func TestCutAt(t *testing.T) {
+	type cutCase struct {
+		cutAt int
+		in    string
+		left  string
+		right string
+	}
+	cases := []cutCase{
+		{3, "one two", "one", " two"},
+		{-2, "100mb", "100", "mb"},
+	}
+	for _, c := range cases {
+		left, right := CutAt(c.in, c.cutAt)
+		if left != c.left || right != c.right {
+			t.Errorf("Expected %s:%s, but got %s:%s", c.left, c.right, left, right)
+		}
+	}
+}
