@@ -1,6 +1,7 @@
 package zos
 
 import (
+	"bufio"
 	"errors"
 	"os"
 )
@@ -48,4 +49,22 @@ func CreateWithTemp(path string, handler FileHandler) error {
 		return err
 	}
 	return os.Rename(tmpPath, path)
+}
+
+// Read all lines from a text file into a slice
+func ReadLines(path string) (lines []string, err error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	r := bufio.NewScanner(f)
+	r.Split(bufio.ScanLines)
+	for r.Scan() {
+		if err = r.Err(); err != nil {
+			return
+		}
+		lines = append(lines, r.Text())
+	}
+	return
 }
