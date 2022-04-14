@@ -36,7 +36,7 @@ func TestReflectBase(t *testing.T) {
 	}
 	for _, c := range cases {
 		set := flag.NewFlagSet("test", flag.ExitOnError)
-		if err := Configure(set, &c.input); err != nil {
+		if err := Configure(set, &c.input, nil); err != nil {
 			t.Error(err)
 		}
 		args := strings.Split(c.args, " ")
@@ -59,7 +59,7 @@ func TestNested(t *testing.T) {
 	}
 	for _, c := range cases {
 		set := flag.NewFlagSet("test", flag.ExitOnError)
-		if err := Configure(set, &c.input); err != nil {
+		if err := Configure(set, &c.input, nil); err != nil {
 			t.Error(err)
 		}
 		if err := set.Parse(strings.Split(c.args, " ")); err != nil {
