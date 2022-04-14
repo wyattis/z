@@ -14,6 +14,14 @@ func (s *StringSlice) SetDefault(val []string) {
 	s.defaultVal = val
 }
 
+func (s *StringSlice) Val() []string {
+	if s.val != nil {
+		return s.val
+	} else {
+		return s.defaultVal
+	}
+}
+
 func (s *StringSlice) Set(val string) error {
 	parts := strings.Split(val, ",")
 	for _, p := range parts {
