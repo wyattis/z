@@ -7,6 +7,11 @@ import (
 
 type Duration time.Duration
 
+func (d *Duration) Set(val string) (err error) {
+	*d, err = ParseDuration(val)
+	return
+}
+
 func (d Duration) String() string {
 	v := time.Duration(d)
 	return v.String()
