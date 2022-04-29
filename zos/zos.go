@@ -58,6 +58,11 @@ func ReadLines(path string) (lines []string, err error) {
 		return
 	}
 	defer f.Close()
+	return ReadLinesFromFile(f)
+}
+
+// Read all lines from an open text file into a slice
+func ReadLinesFromFile(f *os.File) (lines []string, err error) {
 	r := bufio.NewScanner(f)
 	r.Split(bufio.ScanLines)
 	for r.Scan() {
@@ -66,5 +71,16 @@ func ReadLines(path string) (lines []string, err error) {
 		}
 		lines = append(lines, r.Text())
 	}
+	return
+}
+
+// Open the first existing path in a list of paths
+func OpenFirst(paths ...string) (f *os.File, err error) {
+	for _, p := range paths {
+		if Exists(p) {
+			return os.Open(p)
+		}
+	}
+	err = os.ErrNotExist
 	return
 }
