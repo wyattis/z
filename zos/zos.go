@@ -87,7 +87,6 @@ func OpenFirst(paths ...string) (f *os.File, err error) {
 	return
 }
 
-// Copy
 // Copy a file from one location to another
 func Copy(from, to string) (err error) {
 	in, err := os.Open(from)
@@ -104,7 +103,6 @@ func Copy(from, to string) (err error) {
 	return
 }
 
-// CopyTemp
 // Copy a file from one location to another using a temp file
 func CopyTemp(from, to string) (err error) {
 	in, err := os.Open(from)
@@ -120,6 +118,9 @@ func CopyTemp(from, to string) (err error) {
 	defer os.Remove(tmp.Name())
 	_, err = io.Copy(tmp, in)
 	if err != nil {
+		return
+	}
+	if err = tmp.Close(); err != nil {
 		return
 	}
 	return os.Rename(tmp.Name(), to)
