@@ -24,7 +24,15 @@ func Confirm(text string, defaultYes bool) (answeredYes bool) {
 	} else {
 		text += " (y/N)"
 	}
-	res := Prompt(text)
-	res = strings.ToLower(res)
-	return res == "y" || res == "yes"
+	for {
+		res := Prompt(text)
+		res = strings.ToLower(res)
+		if res == "y" || res == "yes" {
+			return true
+		} else if res == "n" || res == "no" {
+			return false
+		} else if res == "" {
+			return defaultYes
+		}
+	}
 }
