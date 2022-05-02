@@ -3,7 +3,9 @@ package zos
 import (
 	"bufio"
 	"errors"
+	"io"
 	"os"
+	"path/filepath"
 )
 
 type FileHandler = func(f *os.File) error
@@ -83,4 +85,42 @@ func OpenFirst(paths ...string) (f *os.File, err error) {
 	}
 	err = os.ErrNotExist
 	return
+}
+
+// Copy
+// Copy a file from one location to another
+func Copy(from, to string) (err error) {
+	in, err := os.Open(from)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+	out, err := os.Create(to)
+	if err != nil {
+		return
+	}
+	defer out.Close()
+	_, err = io.Copy(out, in)
+	return
+}
+
+// CopyTemp
+// Copy a file from one location to another using a temp file
+func CopyTemp(from, to string) (err error) {
+	in, err := os.Open(from)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+	tmp, err := os.CreateTemp(filepath.Dir(to), filepath.Base(to))
+	if err != nil {
+		return
+	}
+	defer tmp.Close()
+	defer os.Remove(tmp.Name())
+	_, err = io.Copy(tmp, in)
+	if err != nil {
+		return
+	}
+	return os.Rename(tmp.Name(), to)
 }
