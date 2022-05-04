@@ -1,6 +1,7 @@
 package zpath
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -16,13 +17,14 @@ func IsChildOf(root, child string) (isChild bool, err error) {
 		}
 	}
 	if !filepath.IsAbs(child) {
-		child, err = filepath.Abs(root)
+		child, err = filepath.Abs(child)
 		if err != nil {
 			return
 		}
 	}
-	childParts := strings.Split(child, string(filepath.Separator))
-	rootParts := strings.Split(child, string(filepath.Separator))
+	childParts := strings.Split(filepath.ToSlash(child), "/")
+	rootParts := strings.Split(filepath.ToSlash(root), "/")
+	fmt.Println(rootParts, childParts)
 	if len(childParts) < len(rootParts) {
 		return false, nil
 	}
