@@ -29,11 +29,18 @@ type intProgress struct {
 	terminalId int
 }
 
+// Set the value of progress bar to a value
 func (i *intProgress) Set(val int) error {
 	i.Value = val
 	return i.Draw(false)
 }
 
+// Increment the progress bar by one
+func (i *intProgress) Inc() error {
+	return i.Set(i.Value + 1)
+}
+
+// Draw the progress bar on the terminal. This will exit early if it is drawing too early
 func (i *intProgress) Draw(force bool) (err error) {
 	w, _, err := terminal.GetSize(i.terminalId)
 	if err != nil {
@@ -55,7 +62,14 @@ func (i *intProgress) Draw(force bool) (err error) {
 	return
 }
 
+// Set the progress bar to 100% complete and force a draw operation
 func (i *intProgress) Complete() error {
 	i.Value = i.Total
+	return i.Draw(true)
+}
+
+// Reset the progress bar
+func (i *intProgress) Reset() error {
+	i.Value = 0
 	return i.Draw(true)
 }
