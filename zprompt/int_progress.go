@@ -16,6 +16,7 @@ func NewProgress(fd *os.File, total int) *intProgress {
 		ProgressChar:  "=",
 		DrawFrequency: time.Second,
 		terminalId:    i,
+		fd:            fd,
 	}
 }
 
@@ -25,6 +26,7 @@ type intProgress struct {
 	ProgressChar  string
 	DrawFrequency time.Duration
 
+	fd         *os.File
 	lastDraw   time.Time
 	terminalId int
 }
@@ -46,9 +48,11 @@ func (i *intProgress) Draw(force bool) (err error) {
 	if err != nil {
 		return
 	}
-	if !force && time.Now().Before(i.lastDraw.Add(i.DrawFrequency)) {
+	now := time.Now()
+	if !force && now.Before(i.lastDraw.Add(i.DrawFrequency)) {
 		return
 	}
+	i.lastDraw = now
 	trailer := fmt.Sprintf(" %d/%d", i.Value, i.Total)
 	w = w - len(trailer) - 1
 	nBar := int(float64(w) * (float64(i.Value) / float64(i.Total)))
@@ -58,18 +62,27 @@ func (i *intProgress) Draw(force bool) (err error) {
 	if nSpace > 0 {
 		space = strings.Repeat(" ", nSpace)
 	}
-	fmt.Printf("\r%s%s%s", bar, space, trailer)
+	_, err = fmt.Fprintf(i.fd, "\r%s%s%s", bar, space, trailer)
 	return
 }
 
 // Set the progress bar to 100% complete and force a draw operation
-func (i *intProgress) Complete() error {
+func (i *intProgress) Complete() (err error) {
 	i.Value = i.Total
-	return i.Draw(true)
+	if err := i.Draw(true); err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(i.fd)
+	return
+}
+
+func (i *intProgress) Clear() (err error) {
+	_, err = fmt.Fprintf(i.fd, "\r")
+	return
 }
 
 // Reset the progress bar
-func (i *intProgress) Reset() error {
+func (i *intProgress) Reset(total int) {
 	i.Value = 0
-	return i.Draw(true)
+	i.Total = total
 }
