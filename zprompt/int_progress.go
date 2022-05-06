@@ -25,10 +25,12 @@ type intProgress struct {
 	Value         int
 	ProgressChar  string
 	DrawFrequency time.Duration
+	Message       string
 
-	fd         *os.File
-	lastDraw   time.Time
-	terminalId int
+	fd            *os.File
+	lastDraw      time.Time
+	lastDrawValue int
+	terminalId    int
 }
 
 // Set the value of progress bar to a value
@@ -53,22 +55,26 @@ func (i *intProgress) Draw(force bool) (err error) {
 		return
 	}
 	i.lastDraw = now
-	trailer := fmt.Sprintf(" %d/%d", i.Value, i.Total)
-	w = w - len(trailer) - 1
-	nBar := int(float64(w) * (float64(i.Value) / float64(i.Total)))
+	i.lastDrawValue = i.Value
+	p := (float64(i.Value) / float64(i.Total))
+	header := fmt.Sprintf("%.0f%% ", p*100)
+	trailer := fmt.Sprintf(" %d/%d %s", i.Value, i.Total, i.Message)
+	w = w - len(trailer) - len(header) - 1
+	nBar := int(float64(w) * p)
 	bar := strings.Repeat(i.ProgressChar, nBar)
 	nSpace := w - nBar
-	space := ""
+	empty := ""
 	if nSpace > 0 {
-		space = strings.Repeat(" ", nSpace)
+		empty = strings.Repeat(" ", nSpace)
 	}
-	_, err = fmt.Fprintf(i.fd, "\r%s%s%s", bar, space, trailer)
+	_, err = fmt.Fprintf(i.fd, "\r%s%s%s%s", header, bar, empty, trailer)
 	return
 }
 
 // Set the progress bar to 100% complete and force a draw operation
 func (i *intProgress) Complete() (err error) {
 	i.Value = i.Total
+	i.Message = ""
 	if err := i.Draw(true); err != nil {
 		return err
 	}
