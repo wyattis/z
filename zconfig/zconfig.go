@@ -7,6 +7,8 @@ import (
 	"github.com/wyattis/z/zdefaults"
 	"github.com/wyattis/z/zenv"
 	"github.com/wyattis/z/zflag"
+	"github.com/wyattis/z/zos"
+	"gopkg.in/yaml.v3"
 )
 
 type configOption = func(val interface{}) error
@@ -23,7 +25,7 @@ func New(options ...configOption) *Configurer {
 }
 
 // Actually update the struct given the values provided
-func (c *Configurer) Parse(val interface{}) (err error) {
+func (c *Configurer) Apply(val interface{}) (err error) {
 	options := c.options
 	if len(options) == 0 {
 		options = append(options, Auto())
@@ -72,6 +74,24 @@ func Flag(args []string) configOption {
 			return err
 		}
 		return set.Parse(args)
+	}
+}
+
+// Configure an interface{} using a yaml file
+func Yaml(paths ...string) configOption {
+	return func(val interface{}) (err error) {
+		for _, loc := range paths {
+			if zos.Exists(loc) {
+				f, err := os.Open(loc)
+				if err != nil {
+					return err
+				}
+				defer f.Close()
+				dec := yaml.NewDecoder(f)
+				return dec.Decode(val)
+			}
+		}
+		return nil
 	}
 }
 
