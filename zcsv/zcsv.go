@@ -79,11 +79,14 @@ type Line struct {
 	headers      *map[string]int
 }
 
-func (l *Line) Get(key string) (val string, err error) {
+func (l Line) Data() []string {
+	return l.data
+}
+
+func (l Line) Get(key string) (val string, err error) {
 	i, ok := (*l.headers)[key]
 	if !ok {
-		fmt.Println(key)
-		err = ErrInvalidColumn
+		err = fmt.Errorf("no column exists with name '%s'", key)
 		return
 	}
 	if i < len(l.data) {
@@ -92,4 +95,12 @@ func (l *Line) Get(key string) (val string, err error) {
 		err = ErrNoData
 	}
 	return
+}
+
+func (l Line) MustGet(key string) string {
+	val, err := l.Get(key)
+	if err != nil {
+		panic(err)
+	}
+	return val
 }

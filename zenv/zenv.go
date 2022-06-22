@@ -59,7 +59,6 @@ func SetFiles(val interface{}, config *EnvOptions, paths ...string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(env)
 	return SetMap(reflect.Indirect(reflect.ValueOf(val)), *config, env, "")
 }
 
@@ -68,7 +67,6 @@ func SetFiles(val interface{}, config *EnvOptions, paths ...string) error {
 func ParseFiles(paths ...string) (env EnvMap, err error) {
 	env = make(EnvMap)
 	for _, p := range paths {
-		fmt.Println("checking", p)
 		if zos.Exists(p) {
 			fileEnv, err := ParseEnvFile(p)
 			if err != nil {
@@ -107,13 +105,11 @@ func SetMap(val reflect.Value, config EnvOptions, env EnvMap, prefix string) (er
 		if prefix != "" {
 			name = strings.Join([]string{prefix, name}, "_")
 		}
-		fmt.Println("zenv.SetMap", t.Name, name, field.IsZero())
 		if k == reflect.Struct {
 			if err = SetMap(field, config, env, name); err != nil {
 				return
 			}
 		} else if field.IsZero() || config.Overwrite {
-			fmt.Println("zenv.SetMap", t.Name, name)
 			if val, exists := env[name]; exists {
 				if field.Type() == reflect.TypeOf(time.Time{}) {
 					t, err := ztime.Parse(val, t.Tag.Get("time-format"))
@@ -122,12 +118,10 @@ func SetMap(val reflect.Value, config EnvOptions, env EnvMap, prefix string) (er
 					}
 					field.Set(reflect.ValueOf(t))
 				} else if converter, exists := zreflect.ConvMap[k]; exists {
-					fmt.Println("converting", k, t.Name, val)
 					rVal, err := converter(val, field, zreflect.ConvMap)
 					if err != nil {
 						return err
 					}
-					fmt.Println("setting", k, t.Name, rVal)
 					field.Set(rVal)
 				} else {
 					return fmt.Errorf("unknown type %s %s", name, k)
