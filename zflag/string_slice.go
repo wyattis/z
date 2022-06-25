@@ -14,12 +14,16 @@ func (s *StringSlice) SetDefault(val []string) {
 	s.defaultVal = val
 }
 
-func (s *StringSlice) Val() []string {
+func (s StringSlice) Val() []string {
 	if s.val != nil {
 		return s.val
 	} else {
 		return s.defaultVal
 	}
+}
+
+func (s StringSlice) Len() int {
+	return len(s.Val())
 }
 
 func (s *StringSlice) Set(val string) error {
@@ -30,7 +34,7 @@ func (s *StringSlice) Set(val string) error {
 	return nil
 }
 
-func (s *StringSlice) String() string {
+func (s StringSlice) String() string {
 	if s.val != nil {
 		return fmt.Sprint(s.val)
 	} else {

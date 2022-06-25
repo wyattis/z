@@ -41,7 +41,7 @@ func (c *Configurer) Apply(val interface{}) (err error) {
 // Configure a struct using any command line flags, environment variables,
 // variables in .env and finally, values set using default tags
 func Auto() configOption {
-	opts := []configOption{Flag(os.Args), Env(".env"), Defaults()}
+	opts := []configOption{Defaults(), Env(".env"), Flag(os.Args)}
 	return func(val interface{}) error {
 		for _, opt := range opts {
 			if err := opt(val); err != nil {
