@@ -54,17 +54,17 @@ func CreateWithTemp(path string, handler FileHandler) error {
 }
 
 // Read all lines from a text file into a slice
-func ReadLines(path string) (lines []string, err error) {
+func ReadLinesFromFile(path string) (lines []string, err error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return
 	}
 	defer f.Close()
-	return ReadLinesFromFile(f)
+	return ReadLines(f)
 }
 
 // Read all lines from an open text file into a slice
-func ReadLinesFromFile(f *os.File) (lines []string, err error) {
+func ReadLines(f io.Reader) (lines []string, err error) {
 	r := bufio.NewScanner(f)
 	r.Split(bufio.ScanLines)
 	for r.Scan() {
