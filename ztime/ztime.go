@@ -65,7 +65,7 @@ func Parse(val string, formats ...string) (t time.Time, err error) {
 			return
 		}
 	}
-	err = fmt.Errorf("failed to parse the time %s. Attempted %d formats. Please provide a format.", val, len(timeFormats))
+	err = fmt.Errorf("failed to parse the time %s. Attempted %d formats. Please provide a format.", val, len(formats))
 	return
 }
 
