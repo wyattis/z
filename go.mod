@@ -1,6 +1,6 @@
 module github.com/wyattis/z
 
-go 1.16
+go 1.18
 
 require (
 	github.com/glebarez/go-sqlite v1.17.2
