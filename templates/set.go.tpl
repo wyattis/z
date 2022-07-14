@@ -2,10 +2,12 @@
 
 package {{.PackageName}}
 
-func New() *Set {
-	return &Set{
+func New(items... {{.Type}}) (s *Set) {
+	s = &Set{
 		items: make(map[{{.Type}}]bool),
 	}
+  s.Add(items...)
+  return
 }
 
 type Set struct {

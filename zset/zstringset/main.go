@@ -2,10 +2,12 @@
 
 package zstringset
 
-func New() *Set {
-	return &Set{
+func New(items... string) (s *Set) {
+	s = &Set{
 		items: make(map[string]bool),
 	}
+  s.Add(items...)
+  return
 }
 
 type Set struct {

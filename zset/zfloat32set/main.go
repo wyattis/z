@@ -2,10 +2,12 @@
 
 package zfloat32set
 
-func New() *Set {
-	return &Set{
+func New(items... float32) (s *Set) {
+	s = &Set{
 		items: make(map[float32]bool),
 	}
+  s.Add(items...)
+  return
 }
 
 type Set struct {

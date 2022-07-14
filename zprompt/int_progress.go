@@ -39,6 +39,16 @@ func (i *intProgress) Set(val int) error {
 	return i.Draw(false)
 }
 
+// Set a message with max length
+func (i *intProgress) SetMessage(msg string, length int) {
+	center := "..."
+	if len(msg) > length {
+		toRemove := len(msg) + len(center) - length
+		index := len(msg) / 2
+		i.Message = msg[:index-toRemove/2] + center + msg[index+toRemove/2:]
+	}
+}
+
 // Increment the progress bar by one
 func (i *intProgress) Inc() error {
 	return i.Set(i.Value + 1)

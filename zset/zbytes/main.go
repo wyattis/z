@@ -2,10 +2,12 @@
 
 package zbytes
 
-func New() *Set {
-	return &Set{
+func New(items... byte) (s *Set) {
+	s = &Set{
 		items: make(map[byte]bool),
 	}
+  s.Add(items...)
+  return
 }
 
 type Set struct {

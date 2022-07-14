@@ -2,10 +2,12 @@
 
 package zint64set
 
-func New() *Set {
-	return &Set{
+func New(items... int64) (s *Set) {
+	s = &Set{
 		items: make(map[int64]bool),
 	}
+  s.Add(items...)
+  return
 }
 
 type Set struct {

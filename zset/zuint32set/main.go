@@ -2,10 +2,12 @@
 
 package zuint32set
 
-func New() *Set {
-	return &Set{
+func New(items... uint32) (s *Set) {
+	s = &Set{
 		items: make(map[uint32]bool),
 	}
+  s.Add(items...)
+  return
 }
 
 type Set struct {
