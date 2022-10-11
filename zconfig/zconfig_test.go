@@ -19,7 +19,7 @@ func TestEnv(t *testing.T) {
 	}
 	conf := config{}
 	c := New(Env())
-	if err := c.Parse(&conf); err != nil {
+	if err := c.Apply(&conf); err != nil {
 		t.Error(err)
 	}
 	expected := config{GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, Goot: "wow"}
@@ -43,8 +43,8 @@ func TestDotEnv(t *testing.T) {
 		}
 	}
 	conf := config{}
-	c := New(EnvFile(".env.test"))
-	if err := c.Parse(&conf); err != nil {
+	c := New(EnvFiles(".env.test"))
+	if err := c.Apply(&conf); err != nil {
 		t.Error(err)
 	}
 	expected := config{GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, Nested: struct{ Hello string }{"world"}}
@@ -68,7 +68,7 @@ func TestFlag(t *testing.T) {
 	for _, c := range cases {
 		val := config{}
 		conf := New(Flag(c.args))
-		if err := conf.Parse(&val); err != nil {
+		if err := conf.Apply(&val); err != nil {
 			t.Error(err)
 		}
 		if !reflect.DeepEqual(val, c.res) {
@@ -96,7 +96,7 @@ func TestFlagDefaults(t *testing.T) {
 	for _, c := range cases {
 		val := config{}
 		conf := New(Flag(c.args), Defaults())
-		if err := conf.Parse(&val); err != nil {
+		if err := conf.Apply(&val); err != nil {
 			t.Error(err)
 		}
 		if !reflect.DeepEqual(val, c.res) {
@@ -111,7 +111,7 @@ func TestFailure(t *testing.T) {
 	}
 	val := config{}
 	c := New(Flag([]string{"-int asdf"}))
-	if err := c.Parse(&val); err == nil {
+	if err := c.Apply(&val); err == nil {
 		t.Error("expected error parsing integer")
 	}
 }
