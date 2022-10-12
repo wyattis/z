@@ -4,96 +4,142 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-
-	"github.com/jmoiron/sqlx"
+	"time"
 )
 
-type base interface {
-	Exec(query string, arguments ...interface{}) (r sql.Result, err error)
-	ExecContext(ctx context.Context, query string, arguments ...interface{}) (r sql.Result, err error)
+type Preparable interface {
+	Prepare(query string) (Stmt, error)
+}
+type PreparableContext interface {
+	PrepareContext(ctx context.Context, query string) (Stmt, error)
+}
+type Queryable interface {
 	Query(query string, args ...interface{}) (rows *sql.Rows, err error)
+}
+type QueryableContext interface {
 	QueryContext(ctx context.Context, query string, args ...interface{}) (rows *sql.Rows, err error)
+}
+
+type Execable interface {
+	Exec(query string, arguments ...interface{}) (r sql.Result, err error)
+}
+type ExecableContext interface {
+	ExecContext(ctx context.Context, query string, arguments ...interface{}) (r sql.Result, err error)
+}
+
+type Pingable interface {
+	Ping() error
+}
+
+type PingableContext interface {
+	PingContext(ctx context.Context) error
+}
+
+type Beginable interface {
+	Begin() (Tx, error)
+}
+
+type BeginTxable interface {
+	BeginTx(ctx context.Context, opts *sql.TxOptions) (Tx, error)
+}
+
+type QueryRowable interface {
 	QueryRow(query string, args ...interface{}) (row *sql.Row)
+}
+type QueryRowableContext interface {
 	QueryRowContext(ctx context.Context, query string, args ...interface{}) (row *sql.Row)
 }
 
-type DB interface {
-	base
-	Driver() driver.Driver
-	Begin() (*sql.Tx, error)
-	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
+type Closable interface {
+	Close() error
 }
 
-type DBx interface {
+type Conn interface {
+	BeginTxable
+	Closable
+}
+
+type Baseable interface {
+	Execable
+	Pingable
+	Preparable
+	Queryable
+	QueryRowable
+}
+
+type BaseableContext interface {
+	ExecableContext
+	PingableContext
+	PreparableContext
+	QueryableContext
+	QueryRowableContext
+}
+
+type DB interface {
+	Beginable
+	BeginTxable
+	Baseable
+	BaseableContext
+	Closable
+	Conn(ctx context.Context) (Conn, error)
+}
+
+type FullDB interface {
 	DB
-	Beginx() (*sqlx.Tx, error)
-	BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error)
+	Driver() driver.Driver
+	SetConnMaxIdleTime(d time.Duration)
+	SetConnMaxLifetime(d time.Duration)
+	SetMaxIdleConns(n int)
+	SetMaxOpenConns(n int)
+	Stats() sql.DBStats
 }
 
 type Tx interface {
-	base
-	Stmt(stmt *sql.Stmt) (s *sql.Stmt)
-	StmtContext(ctx context.Context, stmt *sql.Stmt) (s *sql.Stmt)
+	Stmt(stmt Stmt) (s Stmt)
+	StmtContext(ctx context.Context, stmt Stmt) (s Stmt)
+	Rollback() (err error)
+	Commit() (err error)
+	Execable
+	ExecableContext
+	Preparable
+	PreparableContext
+	Queryable
+	QueryableContext
+	QueryRowable
+	QueryRowableContext
 }
 
-type Txx interface {
-	Tx
-	MustExec(query string, arguments ...interface{}) (r sql.Result)
-	MustExecContext(ctx context.Context, query string, arguments ...interface{}) (r sql.Result)
-	NamedExec(query string, arguments interface{}) (r sql.Result, err error)
-	NamedExecContext(ctx context.Context, query string, arguments interface{}) (r sql.Result, err error)
-	NamedStmt(stmt *sqlx.NamedStmt) (ns *sqlx.NamedStmt)
-	NamedStmtContext(ctx context.Context, stmt *sqlx.NamedStmt) (ns *sqlx.NamedStmt)
-	NamedQuery(query string, arguments interface{}) (rows *sqlx.Rows, err error)
+type Stmt interface {
+	Closable
+	Execable
+	ExecableContext
+	Queryable
+	QueryableContext
+	QueryRowable
+	QueryRowableContext
+}
+
+type ColumnType interface {
+	DatabaseTypeName() string
+	DecimalSize() (precision, scale int64, ok bool)
+	Length() (length int64, ok bool)
+	Name() string
+	Nullable() (nullable, ok bool)
+}
+
+type Row interface {
+	Err() error
+	Scan(dest ...any) error
+}
+
+type Rows interface {
+	Closable
+	ColumnTypes() ([]*ColumnType, error)
+	Columns() ([]string, error)
+	Err() error
+	Next() bool
+	NextResultSet() bool
+	Scan(dest ...any) error
 }
 
 type TxHandler = func(tx Tx) error
-type TxxHandler = func(tx Txx) error
-
-type nopExec struct{}
-
-func (e nopExec) Exec(query string, arguments ...interface{}) (r sql.Result, err error) {
-	return
-}
-func (e nopExec) ExecContext(ctx context.Context, query string, arguments ...interface{}) (r sql.Result, err error) {
-	return
-}
-func (e nopExec) Query(query string, args ...interface{}) (rows *sql.Rows, err error) {
-	return
-}
-func (e nopExec) QueryContext(ctx context.Context, query string, args ...interface{}) (rows *sql.Rows, err error) {
-	return
-}
-func (e nopExec) QueryRow(query string, args ...interface{}) (row *sql.Row) {
-	return
-}
-func (e nopExec) QueryRowContext(ctx context.Context, query string, args ...interface{}) (row *sql.Row) {
-	return
-}
-func (e nopExec) Stmt(stmt *sql.Stmt) (s *sql.Stmt) {
-	return
-}
-func (e nopExec) StmtContext(ctx context.Context, stmt *sql.Stmt) (s *sql.Stmt) {
-	return
-}
-func (e nopExec) MustExec(query string, arguments ...interface{}) (r sql.Result) {
-	return
-}
-func (e nopExec) MustExecContext(ctx context.Context, query string, arguments ...interface{}) (r sql.Result) {
-	return
-}
-func (e nopExec) NamedExec(query string, arguments interface{}) (r sql.Result, err error) {
-	return
-}
-func (e nopExec) NamedExecContext(ctx context.Context, query string, arguments interface{}) (r sql.Result, err error) {
-	return
-}
-func (e nopExec) NamedStmt(stmt *sqlx.NamedStmt) (ns *sqlx.NamedStmt) {
-	return
-}
-func (e nopExec) NamedStmtContext(ctx context.Context, stmt *sqlx.NamedStmt) (ns *sqlx.NamedStmt) {
-	return
-}
-func (e nopExec) NamedQuery(query string, arguments interface{}) (rows *sqlx.Rows, err error) {
-	return
-}
