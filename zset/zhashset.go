@@ -88,3 +88,18 @@ func (s *HashSet[T, K]) Complement(others ...HashSet[T, K]) {
 func (s *HashSet[T, K]) Clone() *HashSet[T, K] {
 	return NewHashSet(s.hasher, s.Items()...)
 }
+
+func (s *HashSet[T, K]) Intersection(others ...HashSet[T, K]) *HashSet[T, K] {
+	res := s.Clone()
+	res.Union(others...)
+	for _, v := range res.Items() {
+		for _, s := range others {
+			k := s.hasher(v)
+			if _, ok := s.items[k]; !ok {
+				delete(res.items, k)
+				break
+			}
+		}
+	}
+	return res
+}

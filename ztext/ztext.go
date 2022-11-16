@@ -7,7 +7,6 @@ import (
 	"io"
 
 	"github.com/gogs/chardet"
-	"github.com/wyattis/z/zslice/zstrings"
 	"golang.org/x/text/encoding/ianaindex"
 	"golang.org/x/text/transform"
 )
@@ -60,7 +59,7 @@ func (r *UTF8Reader) init() (err error) {
 	}
 	r.deleteBom(head, r.encResult.Charset)
 
-	if zstrings.ContainsAny([]string{"UTF-8"}, r.encResult.Charset) {
+	if r.encResult.Charset == "UTF-8" {
 		r.decodingReader = r.reader
 		return
 	}

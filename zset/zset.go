@@ -1,7 +1,5 @@
 package zset
 
-import "fmt"
-
 type Hasher[T any, K comparable] func(T) K
 
 func New[T comparable](vals ...T) *Set[T] {
@@ -89,10 +87,8 @@ func (s *Set[T]) Clone() *Set[T] {
 func (s *Set[T]) Intersection(others ...Set[T]) *Set[T] {
 	res := s.Clone()
 	res.Union(others...)
-	fmt.Println(res)
 	for _, v := range res.Items() {
 		for _, s := range others {
-			fmt.Println("checking", v, s.Items())
 			if !s.Contains(v) {
 				res.Delete(v)
 				break
