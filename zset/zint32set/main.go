@@ -85,3 +85,17 @@ func (s *Set) Clone() *Set {
 	res.Add(s.Items()...)
 	return res
 }
+
+func (s *Set) Intersection(others ...Set) *Set {
+	res := s.Clone()
+	res.Union(others...)
+	for _, v := range res.Items() {
+		for _, s := range others {
+      if _, ok := s.items[v]; !ok {
+        delete(res.items, v)
+        break
+      }
+		}
+	}
+	return res
+}
