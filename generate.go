@@ -76,9 +76,9 @@ func makeTypes(dir, tempName string, types []PrimitiveType) (err error) {
 	if err != nil {
 		return
 	}
-	if err = os.RemoveAll(dir); err != nil {
-		return
-	}
+	// if err = os.RemoveAll(dir); err != nil {
+	// 	return
+	// }
 	for _, t := range types {
 		outputPath := filepath.Join(dir, t.PackageName, "main.go")
 		if err = os.MkdirAll(filepath.Dir(outputPath), os.ModePerm); err != nil {
