@@ -1,7 +1,5 @@
 package zset
 
-package zset
-
 type Hasher[T any, K comparable] func(T) K
 
 func New[T comparable](vals ...T) *Set[T] {
