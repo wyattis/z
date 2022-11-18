@@ -19,29 +19,29 @@ var boms = map[string][]byte{
 	"UTF-32LE": {0xff, 0xfe, 0x00, 0x00},
 }
 
-func NewUTF8ReaderCharset(source io.Reader, charset string) *UTF8Reader {
-	return &UTF8Reader{
+func NewCharsetReader(source io.Reader, charset string) *CharsetReader {
+	return &CharsetReader{
 		source:  source,
 		charset: charset,
 		reader:  bufio.NewReader(source),
 	}
 }
 
-func NewUTF8Reader(source io.Reader) *UTF8Reader {
-	return &UTF8Reader{
+func NewAutoReader(source io.Reader) *CharsetReader {
+	return &CharsetReader{
 		source: source,
 		reader: bufio.NewReader(source),
 	}
 }
 
-type UTF8Reader struct {
+type CharsetReader struct {
 	source         io.Reader
 	reader         *bufio.Reader
 	charset        string
 	decodingReader io.Reader
 }
 
-func (r *UTF8Reader) deleteBom(head []byte, charset string) {
+func (r *CharsetReader) deleteBom(head []byte, charset string) {
 	bom, ok := boms[charset]
 	if !ok {
 		return
@@ -51,7 +51,7 @@ func (r *UTF8Reader) deleteBom(head []byte, charset string) {
 	}
 }
 
-func (r *UTF8Reader) init() (err error) {
+func (r *CharsetReader) init() (err error) {
 	if r.decodingReader != nil {
 		return
 	}
@@ -88,7 +88,7 @@ func (r *UTF8Reader) init() (err error) {
 	return
 }
 
-func (r *UTF8Reader) Read(d []byte) (n int, err error) {
+func (r *CharsetReader) Read(d []byte) (n int, err error) {
 	if err = r.init(); err != nil {
 		return
 	}
@@ -96,8 +96,33 @@ func (r *UTF8Reader) Read(d []byte) (n int, err error) {
 	return
 }
 
-func (r *UTF8Reader) Close() (err error) {
+func (r *CharsetReader) Close() (err error) {
 	if c, ok := r.source.(io.Closer); ok {
+		return c.Close()
+	}
+	return
+}
+
+func NewCharsetWriter(source io.Writer, charset string) (w *CharsetWriter, err error) {
+	e, err := ianaindex.MIME.Encoding(charset)
+	if err != nil {
+		return
+	}
+	return &CharsetWriter{
+		charset: charset,
+		source:  source,
+		Writer:  transform.NewWriter(source, e.NewEncoder()),
+	}, nil
+}
+
+type CharsetWriter struct {
+	charset string
+	source  io.Writer
+	io.Writer
+}
+
+func (w *CharsetWriter) Close() (err error) {
+	if c, ok := w.source.(io.Closer); ok {
 		return c.Close()
 	}
 	return
