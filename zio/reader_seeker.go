@@ -22,6 +22,9 @@ type ReaderToSeeker struct {
 }
 
 func (r *ReaderToSeeker) Read(d []byte) (n int, err error) {
+	if _, ok := r.reader.(io.Seeker); ok {
+		return r.reader.Read(d)
+	}
 	// Handle periods where the cursor is inside the buffer
 	if int(r.cursor) < len(r.buf) {
 		n = copy(d, r.buf[r.cursor:])
@@ -41,6 +44,9 @@ func (r *ReaderToSeeker) Read(d []byte) (n int, err error) {
 }
 
 func (r *ReaderToSeeker) Seek(offset int64, whence int) (newOffset int64, err error) {
+	if s, ok := r.reader.(io.Seeker); ok {
+		return s.Seek(offset, whence)
+	}
 	switch whence {
 	case io.SeekCurrent:
 		offset += r.cursor
