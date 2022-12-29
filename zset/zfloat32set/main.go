@@ -2,10 +2,12 @@
 
 package zfloat32set
 
-func New() *Set {
-	return &Set{
+func New(items... float32) (s *Set) {
+	s = &Set{
 		items: make(map[float32]bool),
 	}
+  s.Add(items...)
+  return
 }
 
 type Set struct {
@@ -81,5 +83,19 @@ func (s *Set) Complement(others ...Set) {
 func (s *Set) Clone() *Set {
 	res := New()
 	res.Add(s.Items()...)
+	return res
+}
+
+func (s *Set) Intersection(others ...Set) *Set {
+	res := s.Clone()
+	res.Union(others...)
+	for _, v := range res.Items() {
+		for _, s := range others {
+      if _, ok := s.items[v]; !ok {
+        delete(res.items, v)
+        break
+      }
+		}
+	}
 	return res
 }

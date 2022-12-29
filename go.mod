@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/glebarez/go-sqlite v1.17.2
+	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.2.0

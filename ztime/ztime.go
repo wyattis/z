@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+const (
+	ISO8601 = "2006-01-02T15:04:05-0700"
+)
+
 // Returns true if the given date falls on a weekday
 func IsWeekday(date time.Time) bool {
 	switch date.Weekday() {
@@ -61,7 +65,7 @@ func Parse(val string, formats ...string) (t time.Time, err error) {
 			return
 		}
 	}
-	err = fmt.Errorf("failed to parse the time %s. Attempted %d formats. Please provide a format.", val, len(timeFormats))
+	err = fmt.Errorf("failed to parse the time %s. Attempted %d formats. Please provide a format.", val, len(formats))
 	return
 }
 
@@ -80,5 +84,23 @@ func ParseUnix(seconds string, nanos string) (t time.Time, err error) {
 	}
 
 	t = time.Unix(s, n)
+	return
+}
+
+// Parse successfully or panic
+func MustParse(val string, formats ...string) (t time.Time) {
+	t, err := Parse(val, formats...)
+	if err != nil {
+		panic(err)
+	}
+	return
+}
+
+// ParseUnix successfully or panic
+func MustParseUnix(seconds string, nanos string) (t time.Time) {
+	t, err := ParseUnix(seconds, nanos)
+	if err != nil {
+		panic(err)
+	}
 	return
 }

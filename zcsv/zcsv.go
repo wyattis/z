@@ -15,12 +15,11 @@ var (
 
 func NewReader(source io.Reader, headers []string) (reader *CsvReader) {
 	r := csv.NewReader(source)
-	// r.ReuseRecord = true
 	reader = &CsvReader{
 		Reader: r,
 	}
 	if headers != nil && len(headers) > 0 {
-		reader.headers = make(map[string]int)
+		reader.headers = make(map[string]int, len(headers))
 		for i := range headers {
 			reader.headers[headers[i]] = i
 		}
@@ -33,7 +32,24 @@ type CsvReader struct {
 	headers map[string]int
 }
 
-func (r *CsvReader) Headers() (cols []string) {
+func (r *CsvReader) init() (err error) {
+	if r.headers == nil {
+		headers, err := r.Reader.Read()
+		if err != nil {
+			return err
+		}
+		r.headers = make(map[string]int, len(headers))
+		for i := range headers {
+			r.headers[headers[i]] = i
+		}
+	}
+	return
+}
+
+func (r *CsvReader) Headers() (cols []string, err error) {
+	if err = r.init(); err != nil {
+		return
+	}
 	for col := range r.headers {
 		cols = append(cols, col)
 	}
@@ -54,15 +70,8 @@ func (r *CsvReader) ReadAll() (lines []Line, err error) {
 }
 
 func (r *CsvReader) Read() (line Line, err error) {
-	if r.headers == nil {
-		r.headers = make(map[string]int)
-		headers, err := r.Reader.Read()
-		if err != nil {
-			return line, err
-		}
-		for i := range headers {
-			r.headers[headers[i]] = i
-		}
+	if err = r.init(); err != nil {
+		return
 	}
 	row, err := r.Reader.Read()
 	if err != nil {

@@ -139,6 +139,18 @@ func SnakeToCamel(val, separator string, minWordSize int) (res string) {
 	return
 }
 
+// Split a string on space characters and trim leading/trailing space from each part
+func SplitSpace(val string) (parts []string) {
+	pParts := strings.Split(val, " ")
+	for _, p := range pParts {
+		trimmed := strings.TrimSpace(p)
+		if trimmed != "" {
+			parts = append(parts, trimmed)
+		}
+	}
+	return
+}
+
 // func SplitMany(val string, seperators ...string) (parts []string) {
 // 	parts = append(parts, val)
 // 	for _, sep := range seperators {
