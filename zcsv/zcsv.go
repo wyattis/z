@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 )
 
 var (
@@ -71,6 +72,43 @@ func (r *CsvReader) Read() (line Line, err error) {
 	line.headers = &r.headers
 	line.errOnInvalid = r.FieldsPerRecord >= 0
 	return
+}
+
+func (r *CsvReader) scanLine(dest reflect.Value, line Line) (err error) {
+
+	return
+}
+
+// Scan a row into this destination
+func (r *CsvReader) Scan(dest *any) (err error) {
+	t := reflect.TypeOf(dest)
+	// v := reflect.ValueOf(dest)
+	if t.Kind() != reflect.Pointer {
+		return errors.New("CsvReader.Scan requires a pointer destination")
+	}
+	// v := reflect.Indirect(reflect.ValueOf(dest))
+	return
+}
+
+// Scan all rows into a slice
+func (r *CsvReader) ScanAll(dest any) (err error) {
+	vPointer := reflect.ValueOf(dest)
+	if reflect.Indirect(vPointer).Type().Kind() != reflect.Slice {
+		return errors.New("CsvReader.ScanAll requires a pointer to a slice")
+	}
+	rDest := vPointer.Elem()
+	for {
+		line, err := r.Read()
+		if err != nil {
+			return err
+		}
+		rowVal := reflect.ValueOf(vPointer.Type().Elem())
+		fmt.Println(rDest, vPointer.Type(), rowVal)
+		if err = r.scanLine(rowVal, line); err != nil {
+			return err
+		}
+		rDest.Set(reflect.Append(rDest, rowVal))
+	}
 }
 
 type Line struct {
