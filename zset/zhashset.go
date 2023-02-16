@@ -1,5 +1,7 @@
 package zset
 
+type Hasher[T any, K comparable] func(T) K
+
 func NewHashSet[T any, K comparable](hash Hasher[T, K], vals ...T) *HashSet[T, K] {
 	s := &HashSet[T, K]{
 		hasher: hash,
