@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"strconv"
 )
 
 var (
@@ -142,6 +143,98 @@ func (l Line) Get(key string) (val string, err error) {
 		err = ErrNoData
 	}
 	return
+}
+
+func (l Line) GetFloat32(key string) (val float32, err error) {
+	str, err := l.Get(key)
+	if err != nil {
+		return
+	}
+	v64, err := strconv.ParseFloat(str, 32)
+	if err != nil {
+		return
+	}
+	val = float32(v64)
+	return
+}
+
+func (l Line) GetFloat64(key string) (val float64, err error) {
+	str, err := l.Get(key)
+	if err != nil {
+		return
+	}
+	return strconv.ParseFloat(str, 64)
+}
+
+func (l Line) GetInt(key string) (val int, err error) {
+	str, err := l.Get(key)
+	if err != nil {
+		return
+	}
+	return strconv.Atoi(str)
+}
+
+func (l Line) GetInt32(key string) (val int32, err error) {
+	str, err := l.Get(key)
+	if err != nil {
+		return
+	}
+	v64, err := strconv.ParseInt(str, 10, 32)
+	if err != nil {
+		return
+	}
+	val = int32(v64)
+	return
+}
+
+func (l Line) GetInt64(key string) (val int64, err error) {
+	str, err := l.Get(key)
+	if err != nil {
+		return
+	}
+	return strconv.ParseInt(str, 10, 64)
+}
+
+func (l Line) GetBool(key string) (val bool, err error) {
+	str, err := l.Get(key)
+	if err != nil {
+		return
+	}
+	return strconv.ParseBool(str)
+}
+
+func (l Line) GetUint(key string) (val uint, err error) {
+	str, err := l.Get(key)
+	if err != nil {
+		return
+	}
+	v64, err := strconv.ParseUint(str, 10, 64)
+	if err != nil {
+		return
+	}
+	val = uint(v64)
+	return
+}
+
+func (l Line) GetUint32(key string) (val uint32, err error) {
+	str, err := l.Get(key)
+	if err != nil {
+		return
+	}
+	v64, err := strconv.ParseUint(str, 10, 32)
+	if err != nil {
+		return
+	}
+	val = uint32(v64)
+	return
+}
+
+func (l Line) GetUint64(key string) (val uint64, err error) {
+	str, err := l.Get(key)
+	if err != nil {
+		return
+	}
+	return strconv.ParseUint(str, 10, 64)
 }
 
 func (l Line) MustGet(key string) string {
