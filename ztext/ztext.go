@@ -107,21 +107,29 @@ func NewCharsetWriter(source io.Writer, charset string) (w *CharsetWriter, err e
 	e, err := ianaindex.MIME.Encoding(charset)
 	if err != nil {
 		return
+	} else if e == nil {
+		err = fmt.Errorf("no encoder found for charset: %s", charset)
+		return
 	}
+
+	t := transform.NewWriter(source, e.NewEncoder())
 	return &CharsetWriter{
-		charset: charset,
-		source:  source,
-		Writer:  transform.NewWriter(source, e.NewEncoder()),
+		charset:     charset,
+		source:      source,
+		WriteCloser: t,
 	}, nil
 }
 
 type CharsetWriter struct {
 	charset string
 	source  io.Writer
-	io.Writer
+	io.WriteCloser
 }
 
 func (w *CharsetWriter) Close() (err error) {
+	if err = w.WriteCloser.Close(); err != nil {
+		return
+	}
 	if c, ok := w.source.(io.Closer); ok {
 		return c.Close()
 	}

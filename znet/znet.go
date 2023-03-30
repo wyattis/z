@@ -6,13 +6,17 @@ import (
 	"time"
 )
 
-func FindOpenPortWithTimeout(timeout time.Duration, host string, min, max int) (port int, err error) {
+/*
+ * Iterate over port range to find an open port using net.Dial. If timeout == 0, the default timeout will be used
+ */
+func FindPortDial(host string, min, max int, timeout time.Duration) (port int, err error) {
+	if timeout == 0 {
+		timeout = time.Millisecond * 50
+	}
 	for port = min; port <= max; port++ {
 		addr := net.JoinHostPort(host, fmt.Sprint(port))
 		conn, err := net.DialTimeout("tcp", addr, timeout)
 		if err != nil {
-			fmt.Printf("Open port at: %s\n", addr)
-			fmt.Println(err)
 			return port, nil
 		}
 		if conn != nil {
@@ -23,6 +27,17 @@ func FindOpenPortWithTimeout(timeout time.Duration, host string, min, max int) (
 	return
 }
 
-func FindOpenPort(host string, min, max int) (port int, err error) {
-	return FindOpenPortWithTimeout(time.Second, host, min, max)
+/*
+ * Find N unique open ports by calling net.Listen with ":0" to let the OS assign a port
+ */
+func FindNPortsListen(n int) (ports []int, err error) {
+	for i := 0; i < n; i++ {
+		l, err := net.Listen("tcp", ":0")
+		if err != nil {
+			return ports, err
+		}
+		ports = append(ports, l.Addr().(*net.TCPAddr).Port)
+		defer l.Close()
+	}
+	return
 }
