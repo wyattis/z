@@ -7,6 +7,9 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+	"time"
+
+	"github.com/wyattis/z/ztime"
 )
 
 var (
@@ -145,6 +148,14 @@ func (l Line) Get(key string) (val string, err error) {
 	return
 }
 
+func (l Line) MustGet(key string) string {
+	val, err := l.Get(key)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
+
 func (l Line) GetFloat32(key string) (val float32, err error) {
 	str, err := l.Get(key)
 	if err != nil {
@@ -237,10 +248,10 @@ func (l Line) GetUint64(key string) (val uint64, err error) {
 	return strconv.ParseUint(str, 10, 64)
 }
 
-func (l Line) MustGet(key string) string {
-	val, err := l.Get(key)
+func (l Line) GetTime(key string, layouts ...string) (val time.Time, err error) {
+	str, err := l.Get(key)
 	if err != nil {
-		panic(err)
+		return
 	}
-	return val
+	return ztime.Parse(str, layouts...)
 }
