@@ -119,3 +119,25 @@ func (ni *NullTime) UnmarshalJSON(b []byte) error {
 	ni.Valid = (err == nil)
 	return err
 }
+
+type NullString struct {
+	sql.NullString
+}
+
+func (ni NullString) MarshalJSON() ([]byte, error) {
+	if !ni.Valid {
+		return nullBytes, nil
+	}
+	return json.Marshal(ni.String)
+}
+
+func (ni *NullString) UnmarshalJSON(b []byte) error {
+	if bytes.Equal(b, nullBytes) {
+		ni.String = ""
+		ni.Valid = false
+		return nil
+	}
+	err := json.Unmarshal(b, &ni.String)
+	ni.Valid = (err == nil)
+	return err
+}
