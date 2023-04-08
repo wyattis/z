@@ -1,9 +1,7 @@
 package ziter
 
 type Iterator[T any] interface {
-	Next() bool
-	Item() T
-	Err() error
+	Next() (item T, done bool, err error)
 }
 
 func NewSliceIterator[T any](slice []T) *sliceIterator[T] {
@@ -18,15 +16,12 @@ type sliceIterator[T any] struct {
 	index int
 }
 
-func (s *sliceIterator[T]) Next() bool {
+func (s *sliceIterator[T]) Next() (item T, done bool, err error) {
+	done = s.index >= len(s.Slice)
+	if done {
+		return
+	}
+	item = s.Slice[s.index]
 	s.index++
-	return s.index < len(s.Slice)
-}
-
-func (s *sliceIterator[T]) Item() T {
-	return s.Slice[s.index]
-}
-
-func (s sliceIterator[T]) Err() error {
-	return nil
+	return
 }

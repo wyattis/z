@@ -43,16 +43,20 @@ func SliceChunks[T any](items []T, size int, handler ChunkHandler[T]) (err error
 	return
 }
 
-func IteratorChunk[T any](iterator Iterator[T], size int, handler ChunkHandler[T]) (err error) {
+func ChunkifyIterator[T any](iterator Iterator[T], size int, handler ChunkHandler[T]) (err error) {
 	chunk := make([]T, 0, size)
-	for iterator.Next() {
-		if err = iterator.Err(); err != nil {
-			return
+	for {
+		item, done, err := iterator.Next()
+		if done {
+			break
 		}
-		chunk = append(chunk, iterator.Item())
+		if err != nil {
+			return err
+		}
+		chunk = append(chunk, item)
 		if len(chunk) >= size {
 			if err = handler(chunk); err != nil {
-				return
+				return err
 			}
 			chunk = chunk[:0]
 		}
