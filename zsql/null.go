@@ -9,6 +9,29 @@ import (
 
 var nullBytes = []byte("null")
 
+// A JSON safe version of sql.NullInt
+type NullInt struct {
+	sql.NullInt64
+}
+
+func (ni NullInt) MarshalJSON() ([]byte, error) {
+	if !ni.Valid {
+		return nullBytes, nil
+	}
+	return json.Marshal(ni.Int64)
+}
+
+func (ni *NullInt) UnmarshalJSON(b []byte) error {
+	if bytes.Equal(b, nullBytes) {
+		ni.Int64 = 0
+		ni.Valid = false
+		return nil
+	}
+	err := json.Unmarshal(b, &ni.Int64)
+	ni.Valid = (err == nil)
+	return err
+}
+
 // A JSON safe version of sql.NullInt64
 type NullInt64 struct {
 	sql.NullInt64
