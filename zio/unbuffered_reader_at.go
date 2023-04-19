@@ -17,7 +17,8 @@ type unbufferedReaderAt struct {
 
 func (u *unbufferedReaderAt) ReadAt(p []byte, off int64) (n int, err error) {
 	if s, ok := u.R.(io.ReaderAt); ok {
-		return s.ReadAt(p, off)
+		n, err = s.ReadAt(p, off)
+		return
 	}
 	if s, ok := u.R.(io.Seeker); ok {
 		if _, err = s.Seek(off, io.SeekStart); err != nil {
