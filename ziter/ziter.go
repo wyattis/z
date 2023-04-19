@@ -10,7 +10,7 @@ var (
 	ErrValueNotSlice = errors.New("value is not a slice")
 )
 
-type ChunkHandler func(chunk []interface{}) error
+type ChunkHandler[T any] func(chunk []T) error
 
 // Convert interface{} into []interface{} if the input is a slice, otherwise,
 // return an error.
@@ -27,22 +27,42 @@ func InterfaceToSlice(input interface{}) (slice []interface{}, err error) {
 }
 
 // Break a slice into multiple slices of the provided size
-func WithChunks(items interface{}, size int, handler ChunkHandler) error {
-	vals, err := InterfaceToSlice(items)
-	if err != nil {
-		return err
-	}
-	numChunks := int(math.Ceil(float64(len(vals)) / float64(size)))
+func SliceChunks[T any](items []T, size int, handler ChunkHandler[T]) (err error) {
+	numChunks := int(math.Ceil(float64(len(items)) / float64(size)))
 	for i := 0; i < numChunks; i++ {
 		end := (i + 1) * size
 		start := i * size
-		if end > len(vals) {
-			end = len(vals)
+		if end > len(items) {
+			end = len(items)
 		}
-		chunk := vals[start:end]
-		if err := handler(chunk); err != nil {
-			return err
+		chunk := items[start:end]
+		if err = handler(chunk); err != nil {
+			return
 		}
 	}
-	return nil
+	return
+}
+
+func ChunkifyIterator[T any](iterator Iterator[T], size int, handler ChunkHandler[T]) (err error) {
+	chunk := make([]T, 0, size)
+	for {
+		item, done, err := iterator.Next()
+		if done {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		chunk = append(chunk, item)
+		if len(chunk) >= size {
+			if err = handler(chunk); err != nil {
+				return err
+			}
+			chunk = chunk[:0]
+		}
+	}
+	if len(chunk) > 0 {
+		err = handler(chunk)
+	}
+	return
 }

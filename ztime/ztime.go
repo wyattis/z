@@ -86,3 +86,21 @@ func ParseUnix(seconds string, nanos string) (t time.Time, err error) {
 	t = time.Unix(s, n)
 	return
 }
+
+// Parse successfully or panic
+func MustParse(val string, formats ...string) (t time.Time) {
+	t, err := Parse(val, formats...)
+	if err != nil {
+		panic(err)
+	}
+	return
+}
+
+// ParseUnix successfully or panic
+func MustParseUnix(seconds string, nanos string) (t time.Time) {
+	t, err := ParseUnix(seconds, nanos)
+	if err != nil {
+		panic(err)
+	}
+	return
+}

@@ -25,6 +25,12 @@ type CombineReaderCloser struct {
 	io.Reader
 	io.Closer
 }
+
+type CombineWriterCloser struct {
+	io.Writer
+	io.Closer
+}
+
 type ReaderToReadCloser struct {
 	io.Reader
 }
