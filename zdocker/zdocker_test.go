@@ -8,7 +8,7 @@ import (
 
 func TestPullImage(t *testing.T) {
 	executed := false
-	err := WithDocker(
+	err := Run(
 		WithImage("alpine:latest"),
 		WithClientOpts(client.WithAPIVersionNegotiation()),
 		CleanupContainer(),
@@ -28,7 +28,7 @@ func TestPullImage(t *testing.T) {
 
 func TestBuildImage(t *testing.T) {
 	executed := false
-	err := WithDocker(
+	err := Run(
 		WithDockerfile("./Dockerfile"),
 		WithClientOpts(client.WithAPIVersionNegotiation()),
 		CleanupContainer(),

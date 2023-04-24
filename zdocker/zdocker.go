@@ -258,7 +258,7 @@ func pullImage(config DockerConfig) (err error) {
 	return
 }
 
-func WithDocker(opts ...Opt) (err error) {
+func Run(opts ...Opt) (err error) {
 	var config DockerConfig
 	for _, opt := range opts {
 		config = opt(config)
