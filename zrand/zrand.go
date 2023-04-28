@@ -60,3 +60,15 @@ func AlphaNumericWord(length int) string {
 func AlphaNumericWordFromSource(source rand.Source, length int) string {
 	return string(SubsetFromSource(source, []rune(ALPHANUMERIC), length))
 }
+
+func Bytes(length int) []byte {
+	d := make([]byte, length)
+	n, err := rand.Read(d)
+	if err != nil {
+		panic(err)
+	}
+	if n != length {
+		panic("didn't read full bytes")
+	}
+	return d
+}
