@@ -41,3 +41,15 @@ func FindNPortsListen(n int) (ports []int, err error) {
 	}
 	return
 }
+
+/**
+ * Find an open port by calling net.Listen with ":0" to let the OS assign a port
+ */
+func FindPortListen() (port int, err error) {
+	l, err := net.Listen("tcp", ":0")
+	if err != nil {
+		return 0, err
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port, nil
+}
