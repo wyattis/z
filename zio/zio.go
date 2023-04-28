@@ -104,7 +104,7 @@ func (r *headRecorder) Bytes() []byte {
 }
 
 func (r *headRecorder) Write(b []byte) (n int, err error) {
-	if r.buf.Len()*8 < int(r.Max) {
+	if r.buf.Len() < int(r.Max) {
 		if n, err = r.buf.Write(b); err != nil {
 			return
 		}
