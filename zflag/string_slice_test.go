@@ -6,7 +6,7 @@ import (
 )
 
 func TestStringSlice(t *testing.T) {
-	s := StringSlice{}
+	s := StringSliceVar{}
 	flag.Var(&s, "string", "idk")
 	flag.Parse()
 }

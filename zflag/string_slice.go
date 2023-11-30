@@ -5,20 +5,20 @@ import (
 	"strings"
 )
 
-func StringSlice(defaults ...string) *stringSlice {
-	return &stringSlice{nil, defaults}
+func StringSlice(defaults ...string) *StringSliceVar {
+	return &StringSliceVar{nil, defaults}
 }
 
-type stringSlice struct {
+type StringSliceVar struct {
 	val        []string
 	defaultVal []string
 }
 
-func (s *stringSlice) SetDefault(val []string) {
+func (s *StringSliceVar) SetDefault(val []string) {
 	s.defaultVal = val
 }
 
-func (s stringSlice) Val() []string {
+func (s StringSliceVar) Val() []string {
 	if s.val != nil {
 		return s.val
 	} else {
@@ -26,11 +26,11 @@ func (s stringSlice) Val() []string {
 	}
 }
 
-func (s stringSlice) Len() int {
+func (s StringSliceVar) Len() int {
 	return len(s.Val())
 }
 
-func (s *stringSlice) Set(val string) error {
+func (s *StringSliceVar) Set(val string) error {
 	parts := strings.Split(val, ",")
 	for _, p := range parts {
 		s.val = append(s.val, strings.TrimSpace(p))
@@ -38,7 +38,7 @@ func (s *stringSlice) Set(val string) error {
 	return nil
 }
 
-func (s stringSlice) String() string {
+func (s StringSliceVar) String() string {
 	if s.val != nil {
 		return fmt.Sprint(s.val)
 	} else {
