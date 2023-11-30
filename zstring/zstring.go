@@ -151,6 +151,19 @@ func SplitSpace(val string) (parts []string) {
 	return
 }
 
+// Wrap each member of a slice in the prefix and suffix
+func WrapEach(val []string, prefix, suffix string) (res []string) {
+	for _, v := range val {
+		res = append(res, prefix+v+suffix)
+	}
+	return
+}
+
+// WrapEachJoin wraps each member of a slice in the prefix and suffix, then calls strings.Join
+func WrapEachJoin(val []string, prefix, suffix, sep string) string {
+	return strings.Join(WrapEach(val, prefix, suffix), sep)
+}
+
 // func SplitMany(val string, seperators ...string) (parts []string) {
 // 	parts = append(parts, val)
 // 	for _, sep := range seperators {
