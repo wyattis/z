@@ -177,3 +177,13 @@ func WrapEachJoin(val []string, prefix, suffix, sep string) string {
 // 	}
 // 	return
 // }
+
+// The way strings.ContainsAny should be implemented instead of a character check
+func ContainsAny(haystack string, needles ...string) bool {
+	for _, needle := range needles {
+		if strings.Contains(haystack, needle) {
+			return true
+		}
+	}
+	return false
+}
