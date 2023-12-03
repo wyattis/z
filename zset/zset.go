@@ -8,6 +8,13 @@ func New[T comparable](vals ...T) *Set[T] {
 	return s
 }
 
+// Create a new set that is the union of all provided sets
+func NewUnion[T comparable](sets ...Set[T]) (s *Set[T]) {
+	s = &Set[T]{}
+	s.Union(sets...)
+	return
+}
+
 type Set[T comparable] struct {
 	items map[T]bool
 }
@@ -82,16 +89,25 @@ func (s *Set[T]) Clone() *Set[T] {
 	return New(s.Items()...)
 }
 
-func (s *Set[T]) Intersection(others ...Set[T]) *Set[T] {
-	res := s.Clone()
-	res.Union(others...)
-	for _, v := range res.Items() {
-		for _, s := range others {
-			if _, ok := s.items[v]; !ok {
-				delete(res.items, v)
-				break
-			}
+// Intersection will reduce this set to the items that are present in this set and the other sets
+func (s *Set[T]) Intersection(others ...Set[T]) {
+	otherUnion := NewUnion(others...)
+	for key := range s.items {
+		if _, ok := otherUnion.items[key]; !ok {
+			delete(s.items, key)
 		}
 	}
-	return res
+}
+
+// Two sets are considered equal if they contain exactly the same elements.
+func (s *Set[T]) Equal(other Set[T]) bool {
+	if s.Size() != other.Size() {
+		return false
+	}
+	for key := range s.items {
+		if _, exists := other.items[key]; !exists {
+			return false
+		}
+	}
+	return true
 }
