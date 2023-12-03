@@ -23,11 +23,24 @@ type HashSet[T any, K comparable] struct {
 	items  map[K]T
 }
 
-func (s *HashSet[T, K]) Add(items ...T) {
+func (s *HashSet[T, K]) Add(items ...T) *HashSet[T, K] {
 	for _, item := range items {
 		k := s.hasher(item)
 		s.items[k] = item
 	}
+	return s
+}
+
+func (s *HashSet[T, K]) Delete(items ...T) {
+	for _, item := range items {
+		k := s.hasher(item)
+		delete(s.items, k)
+	}
+}
+
+func (s *HashSet[T, K]) Clear() *HashSet[T, K] {
+	s.items = make(map[K]T)
+	return s
 }
 
 func (s HashSet[T, K]) Contains(item T) bool {
@@ -56,15 +69,17 @@ func (s HashSet[T, K]) ContainsAny(items ...T) bool {
 	return false
 }
 
-func (s *HashSet[T, K]) Delete(items ...T) {
-	for _, item := range items {
-		k := s.hasher(item)
-		delete(s.items, k)
+// Two sets are considered equal if they contain exactly the same elements.
+func (s *HashSet[T, K]) Equal(other HashSet[T, K]) bool {
+	if s.Size() != other.Size() {
+		return false
 	}
-}
-
-func (s *HashSet[T, K]) Clear() {
-	s.items = make(map[K]T)
+	for key := range s.items {
+		if _, exists := other.items[key]; !exists {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *HashSet[T, K]) Size() int {
@@ -78,20 +93,22 @@ func (s *HashSet[T, K]) Items() (res []T) {
 	return
 }
 
-func (s *HashSet[T, K]) Union(others ...HashSet[T, K]) {
+func (s *HashSet[T, K]) Union(others ...HashSet[T, K]) *HashSet[T, K] {
 	for _, b := range others {
 		for key, item := range b.items {
 			s.items[key] = item
 		}
 	}
+	return s
 }
 
-func (s *HashSet[T, K]) Complement(others ...HashSet[T, K]) {
+func (s *HashSet[T, K]) Complement(others ...HashSet[T, K]) *HashSet[T, K] {
 	for _, b := range others {
 		for key := range b.items {
 			delete(s.items, key)
 		}
 	}
+	return s
 }
 
 func (s *HashSet[T, K]) Clone() *HashSet[T, K] {
@@ -99,24 +116,12 @@ func (s *HashSet[T, K]) Clone() *HashSet[T, K] {
 }
 
 // Intersection will reduce this set to the items that are present in this set and the other sets
-func (s *HashSet[T, K]) Intersection(others ...HashSet[T, K]) {
+func (s *HashSet[T, K]) Intersection(others ...HashSet[T, K]) *HashSet[T, K] {
 	otherUnion := NewHashSetUnion(others...)
 	for key := range s.items {
 		if _, ok := otherUnion.items[key]; !ok {
 			delete(s.items, key)
 		}
 	}
-}
-
-// Two sets are considered equal if they contain exactly the same elements.
-func (s *HashSet[T, K]) Equal(other HashSet[T, K]) bool {
-	if s.Size() != other.Size() {
-		return false
-	}
-	for key := range s.items {
-		if _, exists := other.items[key]; !exists {
-			return false
-		}
-	}
-	return true
+	return s
 }

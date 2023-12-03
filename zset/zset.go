@@ -19,10 +19,31 @@ type Set[T comparable] struct {
 	items map[T]bool
 }
 
-func (s *Set[T]) Add(items ...T) {
+// Efficiently set the internal map for the set
+func (s *Set[T]) setItems(m map[T]bool) {
+	s.items = make(map[T]bool, len(m))
+	for k, v := range m {
+		s.items[k] = v
+	}
+}
+
+func (s *Set[T]) Add(items ...T) *Set[T] {
 	for _, item := range items {
 		s.items[item] = true
 	}
+	return s
+}
+
+func (s *Set[T]) Delete(items ...T) *Set[T] {
+	for _, item := range items {
+		delete(s.items, item)
+	}
+	return s
+}
+
+func (s *Set[T]) Clear() *Set[T] {
+	s.items = make(map[T]bool)
+	return s
 }
 
 func (s Set[T]) Contains(item T) bool {
@@ -48,14 +69,17 @@ func (s Set[T]) ContainsAny(items ...T) bool {
 	return false
 }
 
-func (s *Set[T]) Delete(items ...T) {
-	for _, item := range items {
-		delete(s.items, item)
+// Two sets are considered equal if they contain exactly the same elements.
+func (s *Set[T]) Equal(other Set[T]) bool {
+	if s.Size() != other.Size() {
+		return false
 	}
-}
-
-func (s *Set[T]) Clear() {
-	s.items = make(map[T]bool)
+	for key := range s.items {
+		if _, exists := other.items[key]; !exists {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *Set[T]) Size() int {
@@ -69,45 +93,40 @@ func (s *Set[T]) Items() (res []T) {
 	return
 }
 
-func (s *Set[T]) Union(others ...Set[T]) {
+// Union will add all items from the other sets to this set. This mutates the set.
+func (s *Set[T]) Union(others ...Set[T]) *Set[T] {
 	for _, b := range others {
 		for key, item := range b.items {
 			s.items[key] = item
 		}
 	}
+	return s
 }
 
-func (s *Set[T]) Complement(others ...Set[T]) {
+// Complement will remove all items from this set that are present in the other sets. This mutates the set.
+func (s *Set[T]) Complement(others ...Set[T]) *Set[T] {
 	for _, b := range others {
 		for key := range b.items {
 			delete(s.items, key)
 		}
 	}
+	return s
 }
 
+// Clone will create a new set with the same items as this set. This
 func (s *Set[T]) Clone() *Set[T] {
-	return New(s.Items()...)
+	c := &Set[T]{}
+	c.setItems(s.items)
+	return c
 }
 
-// Intersection will reduce this set to the items that are present in this set and the other sets
-func (s *Set[T]) Intersection(others ...Set[T]) {
+// Intersection will reduce this set to the items that are present in this set and the other sets. This mutates the set.
+func (s *Set[T]) Intersection(others ...Set[T]) *Set[T] {
 	otherUnion := NewUnion(others...)
 	for key := range s.items {
 		if _, ok := otherUnion.items[key]; !ok {
 			delete(s.items, key)
 		}
 	}
-}
-
-// Two sets are considered equal if they contain exactly the same elements.
-func (s *Set[T]) Equal(other Set[T]) bool {
-	if s.Size() != other.Size() {
-		return false
-	}
-	for key := range s.items {
-		if _, exists := other.items[key]; !exists {
-			return false
-		}
-	}
-	return true
+	return s
 }
