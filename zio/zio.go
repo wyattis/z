@@ -84,6 +84,7 @@ func ReadersMatch(r1 io.Reader, r2 io.Reader, bufSize int) error {
 	return nil
 }
 
+
 type headRecorder struct {
 	io.Writer
 	Max    uint
@@ -112,4 +113,15 @@ func (r *headRecorder) Write(b []byte) (n int, err error) {
 		r.nWrote += copy(r.buf[r.nWrote:], b[:n])
 	}
 	return
+}
+
+
+// Determine if the given reader starts with the prefix
+func HasPrefix(r io.Reader, prefix []byte) (ok bool, err error) {
+	buf := make([]byte, len(prefix))
+	_, err = io.ReadFull(r, buf)
+	if err != nil {
+		return
+	}
+	return bytes.Equal(buf, prefix), nil
 }

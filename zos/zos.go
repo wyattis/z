@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/wyattis/z/zio"
 )
 
 type FileHandler = func(f *os.File) error
@@ -124,4 +126,14 @@ func CopyTemp(from, to string) (err error) {
 		return
 	}
 	return os.Rename(tmp.Name(), to)
+}
+
+// Determine if a file starts with a given prefix
+func HasPrefix(path string, prefix []byte) (bool, error) {
+	f, err := os.Open(string(path))
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+	return zio.HasPrefix(f, prefix)
 }
