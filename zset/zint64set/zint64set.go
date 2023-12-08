@@ -2,6 +2,10 @@
 
 package zint64set
 
+import (
+  "sync"
+)
+
 // Create a new set with the given items
 func New(items... int64) (s *Set) {
 	s = &Set{
@@ -12,7 +16,7 @@ func New(items... int64) (s *Set) {
 }
 
 // Create a new set that is the union of all provided sets
-func NewUnion(sets ...Set) (s *Set) {
+func NewUnion(sets ...*Set) (s *Set) {
   size := 0
   for _, set := range sets {
     size += set.Size()
@@ -25,17 +29,18 @@ func NewUnion(sets ...Set) (s *Set) {
 }
 
 // Create a new set that is the intersection of all provided sets
-func NewIntersection(sets ...Set) *Set {
+func NewIntersection(sets ...*Set) *Set {
   s := &Set{}
   s.Intersection(sets...)
   return s
 }
 
 type Set struct {
-	items map[int64]bool
+	items  map[int64]bool
+  lock   sync.RWMutex
 }
 
-// Efficiently set the internal map for the set
+// Efficiently set the internal map for the set. Must hold the lock before calling this.
 func (s *Set) setItems(m map[int64]bool) {
   s.items = make(map[int64]bool, len(m))
   for k, v := range m {
@@ -45,6 +50,8 @@ func (s *Set) setItems(m map[int64]bool) {
 
 // Add items to the set
 func (s *Set) Add(items ...int64) *Set {
+  s.lock.Lock()
+  defer s.lock.Unlock()
 	for _, item := range items {
 		s.items[item] = true
 	}
@@ -52,13 +59,17 @@ func (s *Set) Add(items ...int64) *Set {
 }
 
 // Check if the set contains the given item
-func (s Set) Contains(item int64) bool {
+func (s *Set) Contains(item int64) bool {
+  s.lock.RLock()
+  defer s.lock.RUnlock()
   _, exists := s.items[item]
 	return exists
 }
 
 // Check if the set contains all the given items
-func (s Set) ContainsAll(items ...int64) bool {
+func (s *Set) ContainsAll(items ...int64) bool {
+  s.lock.RLock()
+  defer s.lock.RUnlock()
 	for _, item := range items {
 		if _, exists := s.items[item]; !exists {
 			return false
@@ -68,7 +79,9 @@ func (s Set) ContainsAll(items ...int64) bool {
 }
 
 // Check if the set contains any of the given items
-func (s Set) ContainsAny(items ...int64) bool {
+func (s *Set) ContainsAny(items ...int64) bool {
+  s.lock.RLock()
+  defer s.lock.RUnlock()
 	for _, item := range items {
 		if _, exists := s.items[item]; exists {
 			return true
@@ -79,6 +92,8 @@ func (s Set) ContainsAny(items ...int64) bool {
 
 // Delete items from the set
 func (s *Set) Delete(items ...int64) *Set {
+  s.lock.Lock()
+  defer s.lock.Unlock()
 	for _, item := range items {
 		delete(s.items, item)
 	}
@@ -87,17 +102,23 @@ func (s *Set) Delete(items ...int64) *Set {
 
 // Remove all items from the set
 func (s *Set) Clear() *Set {
+  s.lock.Lock()
+  defer s.lock.Unlock()
 	s.items = make(map[int64]bool)
   return s
 }
 
 // Size returns the size of the set
 func (s *Set) Size() int {
+  s.lock.RLock()
+  defer s.lock.RUnlock()
 	return len(s.items)
 }
 
 // Items returns a slice with the items of the set
 func (s *Set) Items() (res []int64) {
+  s.lock.RLock()
+  defer s.lock.RUnlock()
 	for key := range s.items {
 		res = append(res, key)
 	}
@@ -105,8 +126,12 @@ func (s *Set) Items() (res []int64) {
 }
 
 // Union adds all the items of the other sets to this set. This mutates the set.
-func (s *Set) Union(others ...Set) *Set {
+func (s *Set) Union(others ...*Set) *Set {
+  s.lock.RLock()
+  defer s.lock.RUnlock()
 	for _, b := range others {
+    b.lock.RLock()
+    defer b.lock.RUnlock()
 		for key := range b.items {
 			s.items[key] = true
 		}
@@ -115,8 +140,12 @@ func (s *Set) Union(others ...Set) *Set {
 }
 
 // Complement removes items that are not in the other sets. This mutates the set.
-func (s *Set) Complement(others ...Set) *Set  {
+func (s *Set) Complement(others ...*Set) *Set  {
+  s.lock.Lock()
+  defer s.lock.Unlock()
 	for _, b := range others {
+    b.lock.RLock()
+    defer b.lock.RUnlock()
 		for key := range b.items {
 			delete(s.items, key)
 		}
@@ -126,13 +155,17 @@ func (s *Set) Complement(others ...Set) *Set  {
 
 // Return a new set that contains the same items as the original
 func (s *Set) Clone() *Set {
+  s.lock.RLock()
+  defer s.lock.RUnlock()
 	res := New()
   res.setItems(s.items)
 	return res
 }
 
 // Intersection will reduce this set to the items that are present in this set and the other sets. This mutates the set.
-func (s *Set) Intersection(others ...Set) *Set  {
+func (s *Set) Intersection(others ...*Set) *Set  {
+  s.lock.Lock()
+  defer s.lock.Unlock()
   otherUnion := NewUnion(others...)
 	for key := range s.items {
     if _, ok := otherUnion.items[key]; !ok {
@@ -143,10 +176,14 @@ func (s *Set) Intersection(others ...Set) *Set  {
 }
 
 // Equal returns if boths sets contain the same items
-func (s Set) Equal(other Set) bool {
-  if s.Size() != other.Size() {
+func (s *Set) Equal(other *Set) bool {
+  s.lock.RLock()
+  defer s.lock.RUnlock()
+  if len(s.items) != len(other.items) {
     return false
   }
+  other.lock.RLock()
+  defer other.lock.RUnlock()
   for key := range s.items {
     if _, exists := other.items[key]; !exists {
       return false

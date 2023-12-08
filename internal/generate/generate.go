@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -21,7 +22,7 @@ type PrimitiveType struct {
 //go:embed templates
 var templates embed.FS
 
-var root = ""
+var root = "../"
 var funcMap = template.FuncMap{
 	"title": strings.Title,
 }
@@ -76,16 +77,17 @@ func makeTypes(dir, tempName string, types []PrimitiveType) (err error) {
 	if err != nil {
 		return
 	}
-	// if err = os.RemoveAll(dir); err != nil {
-	// 	return
-	// }
 	for _, t := range types {
-		outputPath := filepath.Join(dir, t.PackageName, "main.go")
+		outputPath, err := filepath.Abs(filepath.Join(dir, t.PackageName, t.PackageName+".go"))
+		if err != nil {
+			return err
+		}
+		fmt.Println("generating into", outputPath)
 		if err = os.MkdirAll(filepath.Dir(outputPath), os.ModePerm); err != nil {
-			return
+			return err
 		}
 		if err = executeTemplate(outputPath, tmpl, tempName, t); err != nil {
-			return
+			return err
 		}
 	}
 
