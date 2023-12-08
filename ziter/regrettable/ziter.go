@@ -10,8 +10,6 @@ var (
 	ErrValueNotSlice = errors.New("value is not a slice")
 )
 
-type ChunkHandler[T any] func(chunk []T) error
-
 // Convert interface{} into []interface{} if the input is a slice, otherwise,
 // return an error.
 func InterfaceToSlice(input interface{}) (slice []interface{}, err error) {

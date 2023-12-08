@@ -2,9 +2,7 @@
 
 package zint32set
 
-import (
-  "sync"
-)
+import "sync"
 
 // Create a new set with the given items
 func New(items... int32) (s *Set) {
@@ -58,16 +56,8 @@ func (s *Set) Add(items ...int32) *Set {
   return s
 }
 
-// Check if the set contains the given item
-func (s *Set) Contains(item int32) bool {
-  s.lock.RLock()
-  defer s.lock.RUnlock()
-  _, exists := s.items[item]
-	return exists
-}
-
-// Check if the set contains all the given items
-func (s *Set) ContainsAll(items ...int32) bool {
+// Check if the set contains all of the given items
+func (s *Set) Contains(items ...int32) bool {
   s.lock.RLock()
   defer s.lock.RUnlock()
 	for _, item := range items {
@@ -165,14 +155,20 @@ func (s *Set) Clone() *Set {
 // Intersection will reduce this set to the items that are present in this set and the other sets. This mutates the set.
 func (s *Set) Intersection(others ...*Set) *Set  {
   s.lock.Lock()
-  defer s.lock.Unlock()
-  otherUnion := NewUnion(others...)
+	defer s.lock.Unlock()
+	for _, o := range others {
+		o.lock.RLock()
+		defer o.lock.RUnlock()
+	}
 	for key := range s.items {
-    if _, ok := otherUnion.items[key]; !ok {
-      delete(s.items, key)
-    }
-  }
-  return s
+		for _, other := range others {
+			if _, ok := other.items[key]; !ok {
+				delete(s.items, key)
+				break
+			}
+		}
+	}
+	return s
 }
 
 // Equal returns if boths sets contain the same items
@@ -190,4 +186,28 @@ func (s *Set) Equal(other *Set) bool {
     }
   }
   return true
+}
+
+// Filter removes all items from the set that do not match the given filter function. This mutates the set.
+func (s *Set) Filter(f func(int32) bool) *Set {
+  s.lock.Lock()
+  defer s.lock.Unlock()
+  for key := range s.items {
+    if !f(key) {
+      delete(s.items, key)
+    }
+  }
+  return s
+}
+
+// FilterItems returns a slice of items from the set that match the given filter function.
+func (s *Set) FilterItems(f func(int32) bool) (res []int32) {
+  s.lock.RLock()
+  defer s.lock.RUnlock()
+  for key := range s.items {
+    if f(key) {
+      res = append(res, key)
+    }
+  }
+  return
 }

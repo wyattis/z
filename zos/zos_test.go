@@ -7,7 +7,7 @@ import (
 )
 
 func TestReadLinesCRLF(t *testing.T) {
-	lines, err := ReadLines("../test/assets/lines.crlf.txt")
+	lines, err := ReadLinesFromFile("../test/assets/lines.crlf.txt")
 	if err != nil {
 		t.Error(err)
 	}
@@ -17,7 +17,7 @@ func TestReadLinesCRLF(t *testing.T) {
 }
 
 func TestReadLinesLF(t *testing.T) {
-	lines, err := ReadLines("../test/assets/lines.lf.txt")
+	lines, err := ReadLinesFromFile("../test/assets/lines.lf.txt")
 	if err != nil {
 		t.Error(err)
 	}

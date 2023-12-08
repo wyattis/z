@@ -14,15 +14,20 @@ func NewIterator(reader *CsvReader) ziter.Iterator[Line] {
 
 type CsvIterator struct {
 	reader *CsvReader
+	item   Line
+	err    error
 }
 
-func (i *CsvIterator) Next() (item Line, done bool, err error) {
-	item, err = i.reader.Read()
-	done = err == io.EOF
-	if done {
-		err = nil
-		return
-	}
-
+func (c *CsvIterator) Next() (hasMore bool) {
+	c.item, c.err = c.reader.Read()
+	hasMore = c.err == io.EOF
 	return
+}
+
+func (c *CsvIterator) Err() error {
+	return c.err
+}
+
+func (c *CsvIterator) Item() Line {
+	return c.item
 }

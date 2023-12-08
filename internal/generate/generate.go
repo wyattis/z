@@ -44,12 +44,13 @@ var sliceTypes = []PrimitiveType{
 
 var setTypes = []PrimitiveType{
 	{"string", "string", "zstringset", true, false, false},
-	{"byte", "byte", "zbytes", false, true, false},
 	{"int", "int", "zintset", false, false, false},
 	{"int16", "int16", "zint16set", false, false, false},
 	{"int32", "int32", "zint32set", false, false, false},
 	{"int64", "int64", "zint64set", false, false, false},
 	{"uint", "uint", "zuintset", false, false, false},
+	{"uint8", "uint8", "zuint8set", false, false, false},
+	{"uint16", "uint16", "zuint16set", false, false, false},
 	{"uint32", "uint32", "zuint32set", false, false, false},
 	{"uint64", "uint64", "zuint64set", false, false, false},
 	{"float32", "float32", "zfloat32set", false, false, false},
@@ -71,14 +72,14 @@ func executeTemplate(out string, tmpl *template.Template, name string, data inte
 	return
 }
 
-func makeTypes(dir, tempName string, types []PrimitiveType) (err error) {
+func makeTypes(dir, tempName string, types []PrimitiveType, nameSuffix string) (err error) {
 	tmpl := template.New("").Funcs(funcMap)
 	tmpl, err = tmpl.ParseFS(templates, "**/*.tpl")
 	if err != nil {
 		return
 	}
 	for _, t := range types {
-		outputPath, err := filepath.Abs(filepath.Join(dir, t.PackageName, t.PackageName+".go"))
+		outputPath, err := filepath.Abs(filepath.Join(dir, t.PackageName, t.PackageName+nameSuffix+".go"))
 		if err != nil {
 			return err
 		}
@@ -95,10 +96,13 @@ func makeTypes(dir, tempName string, types []PrimitiveType) (err error) {
 }
 
 func generate() (err error) {
-	if err = makeTypes(filepath.Join(root, "zslice"), "slice", sliceTypes); err != nil {
+	if err = makeTypes(filepath.Join(root, "zslice"), "slice", sliceTypes, ""); err != nil {
 		return
 	}
-	return makeTypes(filepath.Join(root, "zset"), "set", setTypes)
+	if err = makeTypes(filepath.Join(root, "zset"), "set", setTypes, ""); err != nil {
+		return
+	}
+	return makeTypes(filepath.Join(root, "zset"), "set_test", setTypes, "_test")
 }
 
 func main() {
