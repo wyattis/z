@@ -3,6 +3,7 @@ package ztime
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -59,6 +60,9 @@ var timeFormats = []string{
 // attempt to parse using those formats first. An error is thrown only if no
 // matching formats are found.
 func Parse(val string, formats ...string) (t time.Time, err error) {
+	if strings.ToLower(strings.TrimSpace(val)) == "now" {
+		return time.Now(), nil
+	}
 	formats = append(formats, timeFormats...)
 	for _, format := range formats {
 		if t, err = time.Parse(format, val); err == nil {
@@ -103,4 +107,10 @@ func MustParseUnix(seconds string, nanos string) (t time.Time) {
 		panic(err)
 	}
 	return
+}
+
+// Returns true if the two times are within the given duration of each other
+func EqualWithin(t1, t2 time.Time, within time.Duration) bool {
+	d := t1.Sub(t2)
+	return d < within && -d < within
 }
