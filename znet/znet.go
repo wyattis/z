@@ -53,3 +53,14 @@ func FindPortListen() (port int, err error) {
 	defer l.Close()
 	return l.Addr().(*net.TCPAddr).Port, nil
 }
+
+// Get preferred outbound ip of this machine
+func GetOutboundIP() (net.IP, error) {
+	conn, err := net.Dial("udp", "8.7.6.5:69")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	return localAddr.IP, nil
+}
