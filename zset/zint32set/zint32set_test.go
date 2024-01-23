@@ -173,14 +173,14 @@ func TestIntersection(t *testing.T) {
   }
 }
 
-func TestComplement(t *testing.T) {
+func TestDifference(t *testing.T) {
   s, s2 := New(), New()
   var v int32 = 10
   var v2 int32 = 20
   var v3 int32 = 30
   s.Add(v, v2)
   s2.Add(v2, v3)
-  s3 := s.Clone().Complement(s2)
+  s3 := s.Clone().Difference(s2)
   if !s3.Contains(v) {
     t.Errorf("Expected set to contain \"%v\"", v)
   }

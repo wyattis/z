@@ -15,7 +15,7 @@ func TestHashSetAll(t *testing.T) {
 	HashSetCloneTest[int](t, 1, 2, 3)
 	HashSetUnionTest[int](t, 1, 2, 3)
 	HashSetIntersectionTest[int](t, 1, 2, 3)
-	HashSetComplementTest[int](t, 1, 2, 3)
+	HashSetDifferenceTest[int](t, 1, 2, 3)
 	HashSetFilterTest[int](t, 1, 2, 3)
 	HashSetFilterItemsTest[int](t, 1, 2, 3)
 
@@ -31,7 +31,7 @@ func TestHashSetAll(t *testing.T) {
 	HashSetCloneTest[string](t, "hello", "world", "!")
 	HashSetUnionTest[string](t, "hello", "world", "!")
 	HashSetIntersectionTest[string](t, "hello", "world", "!")
-	HashSetComplementTest[string](t, "hello", "world", "!")
+	HashSetDifferenceTest[string](t, "hello", "world", "!")
 	HashSetFilterTest[string](t, "hello", "world", "!")
 	HashSetFilterItemsTest[string](t, "hello", "world", "!")
 }
@@ -182,11 +182,11 @@ func HashSetIntersectionTest[T comparable](t *testing.T, v, v2, v3 T) {
 	}
 }
 
-func HashSetComplementTest[T comparable](t *testing.T, v, v2, v3 T) {
+func HashSetDifferenceTest[T comparable](t *testing.T, v, v2, v3 T) {
 	s, s2 := NewHashSet(func(item T) T { return item }), NewHashSet(func(item T) T { return item })
 	s.Add(v, v2)
 	s2.Add(v2, v3)
-	s3 := s.Clone().Complement(s2)
+	s3 := s.Clone().Difference(s2)
 	if !s3.Contains(v) {
 		t.Errorf("Expected set to contain \"%v\"", v)
 	}

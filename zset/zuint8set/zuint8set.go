@@ -129,8 +129,8 @@ func (s *Set) Union(others ...*Set) *Set {
   return s
 }
 
-// Complement removes items that are not in the other sets. This mutates the set.
-func (s *Set) Complement(others ...*Set) *Set  {
+// Difference removes items that are in the other sets. This mutates the set.
+func (s *Set) Difference(others ...*Set) *Set  {
   s.lock.Lock()
   defer s.lock.Unlock()
 	for _, b := range others {

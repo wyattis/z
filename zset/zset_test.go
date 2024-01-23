@@ -15,7 +15,7 @@ func TestSetAll(t *testing.T) {
 	SetCloneTest[int](t, 1, 2, 3)
 	SetUnionTest[int](t, 1, 2, 3)
 	SetIntersectionTest[int](t, 1, 2, 3)
-	SetComplementTest[int](t, 1, 2, 3)
+	SetDifferenceTest[int](t, 1, 2, 3)
 	SetFilterTest[int](t, 1, 2, 3)
 	SetFilterSetItemsTest[int](t, 1, 2, 3)
 
@@ -31,7 +31,7 @@ func TestSetAll(t *testing.T) {
 	SetCloneTest[string](t, "hello", "world", "!")
 	SetUnionTest[string](t, "hello", "world", "!")
 	SetIntersectionTest[string](t, "hello", "world", "!")
-	SetComplementTest[string](t, "hello", "world", "!")
+	SetDifferenceTest[string](t, "hello", "world", "!")
 	SetFilterTest[string](t, "hello", "world", "!")
 	SetFilterSetItemsTest[string](t, "hello", "world", "!")
 }
@@ -182,11 +182,11 @@ func SetIntersectionTest[T comparable](t *testing.T, v, v2, v3 T) {
 	}
 }
 
-func SetComplementTest[T comparable](t *testing.T, v, v2, v3 T) {
+func SetDifferenceTest[T comparable](t *testing.T, v, v2, v3 T) {
 	s, s2 := New[T](), New[T]()
 	s.Add(v, v2)
 	s2.Add(v2, v3)
-	s3 := s.Clone().Complement(s2)
+	s3 := s.Clone().Difference(s2)
 	if !s3.Contains(v) {
 		t.Errorf("Expected set to contain \"%v\"", v)
 	}

@@ -14,7 +14,7 @@ type ISet[T comparable] interface {
 	Size() int
 	Items() []T
 	Union(others ...*Set[T]) *Set[T]
-	Complement(others ...*Set[T]) *Set[T]
+	Difference(others ...*Set[T]) *Set[T]
 	Clone() *Set[T]
 	Intersection(others ...*Set[T]) *Set[T]
 	Filter(f func(T) bool) *Set[T]
@@ -142,20 +142,6 @@ func (s *Set[T]) Union(others ...*Set[T]) *Set[T] {
 	return s
 }
 
-// Complement will remove all items from this set that are present in the other sets. This mutates the set.
-func (s *Set[T]) Complement(others ...*Set[T]) *Set[T] {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	for _, b := range others {
-		b.lock.RLock()
-		defer b.lock.RUnlock()
-		for key := range b.items {
-			delete(s.items, key)
-		}
-	}
-	return s
-}
-
 // Clone will create a new set with the same items as this set. This
 func (s *Set[T]) Clone() *Set[T] {
 	c := &Set[T]{}
@@ -174,6 +160,25 @@ func (s *Set[T]) Intersection(others ...*Set[T]) *Set[T] {
 	for key := range s.items {
 		for _, other := range others {
 			if _, ok := other.items[key]; !ok {
+				delete(s.items, key)
+				break
+			}
+		}
+	}
+	return s
+}
+
+// Difference will reduce this set to the items that are present in this set but not in the other sets. This mutates the set.
+func (s *Set[T]) Difference(others ...*Set[T]) *Set[T] {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	for _, o := range others {
+		o.lock.RLock()
+		defer o.lock.RUnlock()
+	}
+	for key := range s.items {
+		for _, other := range others {
+			if _, ok := other.items[key]; ok {
 				delete(s.items, key)
 				break
 			}

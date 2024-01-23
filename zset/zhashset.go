@@ -121,19 +121,6 @@ func (s *HashSet[T, K]) Union(others ...*HashSet[T, K]) *HashSet[T, K] {
 	return s
 }
 
-func (s *HashSet[T, K]) Complement(others ...*HashSet[T, K]) *HashSet[T, K] {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	for _, b := range others {
-		b.lock.RLock()
-		defer b.lock.RUnlock()
-		for key := range b.items {
-			delete(s.items, key)
-		}
-	}
-	return s
-}
-
 func (s *HashSet[T, K]) Clone() *HashSet[T, K] {
 	return NewHashSet(s.hasher, s.Items()...)
 }
@@ -149,6 +136,25 @@ func (s *HashSet[T, K]) Intersection(others ...*HashSet[T, K]) *HashSet[T, K] {
 	for key := range s.items {
 		for _, other := range others {
 			if _, ok := other.items[key]; !ok {
+				delete(s.items, key)
+				break
+			}
+		}
+	}
+	return s
+}
+
+// Difference will reduce this set to the items that are present in this set but not in the other sets. This mutates the set.
+func (s *HashSet[T, K]) Difference(others ...*HashSet[T, K]) *HashSet[T, K] {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	for _, o := range others {
+		o.lock.RLock()
+		defer o.lock.RUnlock()
+	}
+	for key := range s.items {
+		for _, other := range others {
+			if _, ok := other.items[key]; ok {
 				delete(s.items, key)
 				break
 			}
