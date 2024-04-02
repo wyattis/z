@@ -16,9 +16,10 @@ type readResult struct {
 }
 
 type ctxReader struct {
-	ctx context.Context
-	r   io.Reader
-	sig chan readResult
+	ctx    context.Context
+	r      io.Reader
+	cancel func()
+	sig    chan readResult
 }
 
 func (r *ctxReader) Read(p []byte) (n int, err error) {
@@ -28,11 +29,17 @@ func (r *ctxReader) Read(p []byte) (n int, err error) {
 	go r.goRead(p, r.sig)
 	select {
 	case <-r.ctx.Done():
+		if r.cancel != nil {
+			r.cancel()
+		}
 		if err := r.ctx.Err(); err != nil {
 			return 0, err
 		}
 		return 0, errors.New("context canceled without error")
 	case res := <-r.sig:
+		if r.cancel != nil {
+			r.cancel()
+		}
 		return res.n, res.err
 	}
 }
