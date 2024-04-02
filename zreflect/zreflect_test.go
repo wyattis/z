@@ -17,5 +17,4 @@ func TestSetTime(t *testing.T) {
 	if !ti.Equal(expected) {
 		t.Errorf("Expected %v, got %v", expected, t)
 	}
-
 }

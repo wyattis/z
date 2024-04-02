@@ -1,7 +1,6 @@
 package zreflect
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -17,10 +16,7 @@ func FieldIterator(v any) *fieldIterator {
 }
 
 func newFieldIterator(v reflect.Value) *fieldIterator {
-	fmt.Println("type before", v.CanAddr(), v.CanSet(), v.CanInterface(), v.Type().String())
-	// isPointer := v.Kind() == reflect.Ptr
 	container := reflect.Indirect(v)
-	fmt.Println("type after", container.CanAddr(), container.CanSet(), container.CanInterface(), container.Type().String())
 	container, kind, ok := kindFromValue(container)
 	if !ok {
 		panic("FieldIterator only works on structs and maps")
@@ -133,14 +129,33 @@ func (f *fieldIterator) Value() reflect.Value {
 	}
 }
 
-func (f *fieldIterator) Set(val reflect.Value) {
+func (f *fieldIterator) Set(val reflect.Value) (err error) {
 	if f.child != nil {
 		f.child.Set(val)
 	} else if f.kind == Struct {
 		field := f.container.Field(f.fieldIndex)
-		fmt.Println("Set", field.CanAddr(), field.CanSet(), field.CanInterface())
+		isPointer := field.Kind() == reflect.Ptr
+		if isPointer {
+			if field.IsNil() {
+				// create a new instance and set it
+				field.Set(reflect.New(field.Type().Elem()))
+			}
+			field = field.Elem()
+			// if val.Kind() != reflect.Ptr {
+			// 	if val.CanAddr() {
+			// 		val = val.Addr()
+			// 	} else {
+			// 		return fmt.Errorf("can't address value: %s", val)
+			// 	}
+			// }
+		}
+		// fmt.Println("Set", field.CanAddr(), field.CanSet(), field.CanInterface(), isPointer)
 		if field.CanInterface() {
-			if f.assignViaInterface(field, val) {
+			v := field
+			if field.CanAddr() {
+				v = field.Addr()
+			}
+			if f.assignViaInterface(v, val) {
 				return
 			}
 		}
@@ -148,10 +163,11 @@ func (f *fieldIterator) Set(val reflect.Value) {
 	} else {
 		f.container.Elem().SetMapIndex(f.keys[f.fieldIndex], val)
 	}
+	return nil
 }
 
 func (f *fieldIterator) assignViaInterface(field, val reflect.Value) (assigned bool) {
-	switch k := val.Interface().(type) {
+	switch k := field.Interface().(type) {
 	case StringSet:
 		if val.Kind() == reflect.String {
 			k.Set(val.String())

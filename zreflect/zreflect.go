@@ -1,6 +1,7 @@
 package zreflect
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -28,9 +29,27 @@ func FieldNames(val interface{}, tags ...string) (res []string) {
 	return
 }
 
-func SetValue(val reflect.Value, toVal any) (err error) {
-	// isPointer := val.Kind() == reflect.Ptr
-	// fmt.Println("isPointer", isPointer)
+func WithStructTags(tags reflect.StructTag) opt {
+	return func(c *setConfig) {
+		c.tags = tags
+	}
+}
+
+type setConfig struct {
+	tags reflect.StructTag
+}
+
+func (c *setConfig) Load(opts []opt) *setConfig {
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
+}
+
+type opt func(*setConfig)
+
+func SetValue(val reflect.Value, toVal any, opts ...opt) (err error) {
+	conf := (&setConfig{}).Load(opts)
 	val = reflect.Indirect(val)
 	if val.CanInterface() {
 		wasSet, err := setViaInterface(val, toVal)
@@ -45,20 +64,18 @@ func SetValue(val reflect.Value, toVal any) (err error) {
 	if val.Type() == reflect.TypeOf(time.Time{}) {
 		if t, ok := toVal.(time.Time); ok {
 			val.Set(reflect.ValueOf(t))
-		} else if s, ok := toVal.(string); ok {
-			t, err := ztime.Parse(s)
-			if err != nil {
-				return err
-			}
-			val.Set(reflect.ValueOf(t))
-		} else if s, ok := toVal.(*string); ok {
-			t, err := ztime.Parse(*s)
-			if err != nil {
-				return err
-			}
-			val.Set(reflect.ValueOf(t))
 		} else {
-			err = fmt.Errorf("cannot set time from %T", toVal)
+			s, ok := toVal.(string)
+			if !ok {
+				if sp, ok := toVal.(*string); ok {
+					s = *sp
+				}
+			}
+			t, err = getTimeFromString(val, s, conf)
+			if err != nil {
+				return
+			}
+			val.Set(reflect.ValueOf(t))
 		}
 		return
 	}
@@ -69,20 +86,21 @@ func SetValue(val reflect.Value, toVal any) (err error) {
 		} else if d, ok := toVal.(int64); ok {
 			dur := time.Duration(d)
 			val.Set(reflect.ValueOf(dur))
-		} else if s, ok := toVal.(string); ok {
-			d, err := time.ParseDuration(s)
-			if err != nil {
-				return err
-			}
-			val.Set(reflect.ValueOf(d))
-		} else if s, ok := toVal.(*string); ok {
-			d, err := time.ParseDuration(*s)
-			if err != nil {
-				return err
-			}
-			val.Set(reflect.ValueOf(d))
 		} else {
-			err = fmt.Errorf("cannot set duration from %T", toVal)
+			s, ok := toVal.(string)
+			if !ok {
+				if sp, ok := toVal.(*string); ok {
+					s = *sp
+				} else {
+					err = fmt.Errorf("cannot set duration from %T", toVal)
+					return
+				}
+			}
+			d, err := getDurationFromString(val, s, conf)
+			if err != nil {
+				return err
+			}
+			val.Set(reflect.ValueOf(d))
 		}
 		return
 	}
@@ -108,13 +126,158 @@ func SetValue(val reflect.Value, toVal any) (err error) {
 			err = fmt.Errorf("cannot set bool from %T", toVal)
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return setInt(val, toVal)
+		i, err := getInt(val, toVal.(int64))
+		if err != nil {
+			return err
+		}
+		val.Set(i)
+		return nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return setUint(val, toVal)
+		i, err := getUint(val, toVal.(uint64))
+		if err != nil {
+			return err
+		}
+		val.Set(i)
+		return nil
 	case reflect.Float32, reflect.Float64:
-		return setFloat(val, toVal)
+		i, err := getFloat(val, toVal.(float64))
+		if err != nil {
+			return err
+		}
+		val.Set(i)
+		return nil
 	}
 	return
+}
+
+// Parse the given string and use it to set the given value
+func SetValueFromString(val reflect.Value, toVal string, opts ...opt) (err error) {
+	val = reflect.Indirect(val)
+	if val.CanInterface() {
+		vi := val.Interface()
+		switch t := vi.(type) {
+		case StringSet:
+			t.Set(toVal)
+			return
+		case StringSetErr:
+			return t.Set(toVal)
+		}
+	}
+	res, err := GetValueFromString(val, toVal, opts...)
+	if err != nil {
+		return
+	}
+	val.Set(res)
+	return
+}
+
+var ErrCantConvertFromString = errors.New("unable to convert string into value")
+
+func GetValueFromString(field reflect.Value, strVal string, opts ...opt) (res reflect.Value, err error) {
+	conf := (&setConfig{}).Load(opts)
+	isPointer := field.Kind() == reflect.Ptr
+
+	val := reflect.Indirect(field)
+	if isPointer && field.IsNil() {
+		val = reflect.New(field.Type().Elem()).Elem()
+	}
+
+	res, err = getValFromString(val, strVal, conf)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func getValFromString(val reflect.Value, strVal string, conf *setConfig) (res reflect.Value, err error) {
+	switch val.Type() {
+	case reflect.TypeOf(time.Time{}):
+		t, err := getTimeFromString(val, strVal, conf)
+		if err != nil {
+			return res, err
+		}
+		return reflect.ValueOf(t), err
+	case reflect.TypeOf(time.Second):
+		d, err := getDurationFromString(val, strVal, conf)
+		if err != nil {
+			return res, err
+		}
+		return reflect.ValueOf(d), err
+	}
+
+	k := val.Kind()
+	switch k {
+	case reflect.String:
+		return reflect.ValueOf(strVal), nil
+	case reflect.Bool:
+		b, err := strconv.ParseBool(strVal)
+		if err != nil {
+			return res, err
+		}
+		return reflect.ValueOf(b), nil
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		size := 64
+		if k == reflect.Int8 {
+			size = 8
+		} else if k == reflect.Int16 {
+			size = 16
+		} else if k == reflect.Int32 {
+			size = 32
+		}
+		i, err := strconv.ParseInt(strVal, 10, size)
+		if err != nil {
+			return res, err
+		}
+		return getInt(val, i)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		size := 64
+		if k == reflect.Uint8 {
+			size = 8
+		} else if k == reflect.Uint16 {
+			size = 16
+		} else if k == reflect.Uint32 {
+			size = 32
+		}
+		i, err := strconv.ParseUint(strVal, 10, size)
+		if err != nil {
+			return res, err
+		}
+		return getUint(val, i)
+	case reflect.Float32, reflect.Float64:
+		size := 64
+		if k == reflect.Float32 {
+			size = 32
+		}
+		f, err := strconv.ParseFloat(strVal, size)
+		if err != nil {
+			return res, err
+		}
+		return getFloat(val, f)
+	case reflect.Slice:
+		// parts := strings.Split(toVal, ",")
+		// elem := val.Type().Elem()
+		// res := reflect.MakeSlice(reflect.SliceOf(elem), 0, len(parts))
+		return res, errors.New("slice is not implemented")
+	}
+
+	return res, ErrCantConvertFromString
+}
+
+func getTimeFromString(val reflect.Value, strVal string, conf *setConfig) (t time.Time, err error) {
+	format, ok := conf.tags.Lookup("time_format")
+	if ok {
+		t, err = time.Parse(format, strVal)
+	} else {
+		t, err = ztime.Parse(strVal)
+	}
+	if err != nil {
+		return
+	}
+	return
+}
+
+func getDurationFromString(val reflect.Value, strVal string, conf *setConfig) (d time.Duration, err error) {
+	return time.ParseDuration(strVal)
 }
 
 func setViaInterface(val reflect.Value, toVal any) (wasSet bool, err error) {
@@ -168,110 +331,48 @@ func setViaInterface(val reflect.Value, toVal any) (wasSet bool, err error) {
 	return
 }
 
-func setInt(val reflect.Value, toVal any) (err error) {
-	i, ok := toVal.(int)
-	if !ok {
-		if ip, ok := toVal.(*int); ok {
-			i = *ip
-		} else if i64, ok := toVal.(int64); ok {
-			i = int(i64)
-		} else if i64p, ok := toVal.(*int64); ok {
-			i = int(*i64p)
-		} else if i32, ok := toVal.(int32); ok {
-			i = int(i32)
-		} else if i32p, ok := toVal.(*int32); ok {
-			i = int(*i32p)
-		} else if i16, ok := toVal.(int16); ok {
-			i = int(i16)
-		} else if i16p, ok := toVal.(*int16); ok {
-			i = int(*i16p)
-		} else if i8, ok := toVal.(int8); ok {
-			i = int(i8)
-		} else if i8p, ok := toVal.(*int8); ok {
-			i = int(*i8p)
-		} else {
-			err = fmt.Errorf("cannot set int from %T", toVal)
-			return
-		}
-	}
+func getInt(val reflect.Value, toVal int64) (res reflect.Value, err error) {
 	switch val.Kind() {
 	case reflect.Int:
-		val.SetInt(int64(i))
+		return reflect.ValueOf(int(toVal)), nil
 	case reflect.Int8:
-		val.SetInt(int64(int8(i)))
+		return reflect.ValueOf(int8(toVal)), nil
 	case reflect.Int16:
-		val.SetInt(int64(int16(i)))
+		return reflect.ValueOf(int16(toVal)), nil
 	case reflect.Int32:
-		val.SetInt(int64(int32(i)))
+		return reflect.ValueOf(int32(toVal)), nil
 	case reflect.Int64:
-		val.SetInt(int64(i))
+		return reflect.ValueOf(toVal), nil
 	}
+	err = fmt.Errorf("cannot set %T from int64", val)
 	return
 }
 
-func setUint(val reflect.Value, toVal any) (err error) {
-	i, ok := toVal.(uint)
-	if !ok {
-		if ip, ok := toVal.(*uint); ok {
-			i = *ip
-		} else if i64, ok := toVal.(uint64); ok {
-			i = uint(i64)
-		} else if i64p, ok := toVal.(*uint64); ok {
-			i = uint(*i64p)
-		} else if i32, ok := toVal.(uint32); ok {
-			i = uint(i32)
-		} else if i32p, ok := toVal.(*uint32); ok {
-			i = uint(*i32p)
-		} else if i16, ok := toVal.(uint16); ok {
-			i = uint(i16)
-		} else if i16p, ok := toVal.(*uint16); ok {
-			i = uint(*i16p)
-		} else if i8, ok := toVal.(uint8); ok {
-			i = uint(i8)
-		} else if i8p, ok := toVal.(*uint8); ok {
-			i = uint(*i8p)
-		} else {
-			err = fmt.Errorf("cannot set uint from %T", toVal)
-			return
-		}
-	}
-
+func getUint(val reflect.Value, toVal uint64) (res reflect.Value, err error) {
 	switch val.Kind() {
 	case reflect.Uint:
-		val.SetUint(uint64(i))
+		return reflect.ValueOf(uint(toVal)), nil
 	case reflect.Uint8:
-		val.SetUint(uint64(uint8(i)))
+		return reflect.ValueOf(uint8(toVal)), nil
 	case reflect.Uint16:
-		val.SetUint(uint64(uint16(i)))
+		return reflect.ValueOf(uint16(toVal)), nil
 	case reflect.Uint32:
-		val.SetUint(uint64(uint32(i)))
+		return reflect.ValueOf(uint32(toVal)), nil
 	case reflect.Uint64:
-		val.SetUint(uint64(i))
+		return reflect.ValueOf(toVal), nil
 	}
+	err = fmt.Errorf("cannot set %T from uint64", val)
 	return
 }
 
-func setFloat(val reflect.Value, toVal any) (err error) {
-	var f float64
-	if i, ok := toVal.(float64); ok {
-		f = i
-	} else if ip, ok := toVal.(*float64); ok {
-		f = *ip
-	} else if i32, ok := toVal.(float32); ok {
-		f = float64(i32)
-	} else if i32p, ok := toVal.(*float32); ok {
-		f = float64(*i32p)
-	} else {
-		err = fmt.Errorf("cannot set float from %T", toVal)
-		return
-	}
-
+func getFloat(val reflect.Value, toVal float64) (res reflect.Value, err error) {
 	switch val.Kind() {
-	case reflect.Float32:
-		val.SetFloat(float64(float32(f)))
 	case reflect.Float64:
-		val.SetFloat(float64(f))
+		return reflect.ValueOf(toVal), nil
+	case reflect.Float32:
+		return reflect.ValueOf(float32(toVal)), nil
 	}
+	err = fmt.Errorf("cannot set %T from float64", val)
 	return
 }
 
