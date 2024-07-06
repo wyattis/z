@@ -1,7 +1,6 @@
 package zos
 
 import (
-	"bufio"
 	"errors"
 	"io"
 	"os"
@@ -62,20 +61,7 @@ func ReadLinesFromFile(path string) (lines []string, err error) {
 		return
 	}
 	defer f.Close()
-	return ReadLines(f)
-}
-
-// Read all lines from an open text file into a slice
-func ReadLines(f io.Reader) (lines []string, err error) {
-	r := bufio.NewScanner(f)
-	r.Split(bufio.ScanLines)
-	for r.Scan() {
-		if err = r.Err(); err != nil {
-			return
-		}
-		lines = append(lines, r.Text())
-	}
-	return
+	return zio.ReadLines(f)
 }
 
 // Open the first existing path in a list of paths
