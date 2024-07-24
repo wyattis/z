@@ -187,3 +187,12 @@ func ContainsAny(haystack string, needles ...string) bool {
 	}
 	return false
 }
+
+// Add a prefix to each line in a string
+func PrefixLines(val, prefix string) (res string) {
+	lines := strings.Split(val, "\n")
+	for _, l := range lines {
+		res += prefix + l + "\n"
+	}
+	return
+}
